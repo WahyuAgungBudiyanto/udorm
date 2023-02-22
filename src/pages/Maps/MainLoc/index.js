@@ -1,61 +1,56 @@
-import {
-  Button,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-  PermissionsAndroid,
-  Alert,
-} from 'react-native';
-import React from 'react';
-import {useState, useEffect} from 'react';
+import {StyleSheet, View, PermissionsAndroid, Text} from 'react-native';
+import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import CrystalCoordinate from '../CrystalCoordinate';
-import ChapelCoordinate from '../ChapelCoordinate';
 import EdelCoordinate from '../EdelCoordinate';
+import GensetCoordinate from '../GensetCoordinate';
 import GuestCoordinate from '../GuestCoordinate';
 import JasmineCoordinate from '../JasmineCoordinate';
-import GensetCoordinate from '../GensetCoordinate';
 import AnnexCoordinate from '../AnnexCoordinate';
+import ChapelCoordinate from '../ChapelCoordinate';
+
+import geolib from 'geolib';
 
 const MainLoc = ({}) => {
-  async function requestLocationPermission() {
-    try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the location');
-        watchId = Geolocation.watchPosition(
-          position => {
-            setInitialRegion({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              latitudeDelta: 0.001,
-              longitudeDelta: 0.001,
-            });
-          },
-          error => {
-            console.log(error.code, error.message);
-          },
-          {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-        );
-      } else {
-        console.log('Location permission denied');
-      }
-    } catch (err) {
-      console.warn(err);
-    }
-  }
-
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
+    async function requestLocationPermission() {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('You can use the location');
+          watchId = setInterval(() => {
+            Geolocation.getCurrentPosition(
+              position => {
+                setInitialRegion({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  latitudeDelta: 0.001,
+                  longitudeDelta: 0.001,
+                });
+              },
+              error => {
+                console.log(error.code, error.message);
+              },
+              {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+            );
+          }, 1000);
+        } else {
+          console.log('Location permission denied');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
     requestLocationPermission();
-    return () => Geolocation.clearWatch(watchId);
+    return () => clearInterval(watchId);
   }, []);
 
   const onMapReady = () => {
@@ -79,16 +74,17 @@ const MainLoc = ({}) => {
         showsMyLocationButton={true}>
         {mapReady && (
           <>
-            <CrystalCoordinate />
-            <ChapelCoordinate />
-            <EdelCoordinate />
-            <GuestCoordinate />
-            <JasmineCoordinate />
-            <GensetCoordinate />
-            <AnnexCoordinate />
+            <CrystalCoordinate userLocation={initialRegion} />
+            <EdelCoordinate userLocation={initialRegion} />
+            <GensetCoordinate userLocation={initialRegion} />
+            <GuestCoordinate userLocation={initialRegion} />
+            <JasmineCoordinate userLocation={initialRegion} />
+            <AnnexCoordinate userLocation={initialRegion} />
+            <ChapelCoordinate userLocation={initialRegion} />
           </>
         )}
       </MapView>
+      <Text></Text>
     </View>
   );
 };
