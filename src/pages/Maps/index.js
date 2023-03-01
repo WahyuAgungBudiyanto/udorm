@@ -7,6 +7,7 @@ import JasmineCoordinate from './JasmineCoordinate';
 import GensetCoordinate from './GensetCoordinate';
 import AnnexCoordinate from './AnnexCoordinate';
 import MainLoc from './MainLoc';
+import {LoginHeader} from '../../components';
 
 export {
   CrystalCoordinate,
@@ -17,4 +18,5 @@ export {
   GensetCoordinate,
   AnnexCoordinate,
   MainLoc,
+  LoginHeader,
 };
