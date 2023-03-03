@@ -5,7 +5,7 @@ const TextInput = ({title, placeholder}) => {
   return (
     <View>
       <Text style={styles.text}>{title}</Text>
-      <TextInputRN style={styles.input} placeholder={placeholder} />
+      <TextInputRN style={styles.input} placeholder={placeholder} placeholderTextColor="#CCC6C6"/>
     </View>
   );
 };
@@ -24,8 +24,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#020202',
     borderRadius: 8,
-    paddingLeft: 10,
-    paddingHorizontal: 10,
+    paddingLeft: 30,
+    paddingHorizontal: 150,
     marginHorizontal: 50,
   },
 });
