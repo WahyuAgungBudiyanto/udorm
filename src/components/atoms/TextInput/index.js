@@ -23,9 +23,11 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#020202',
+    color: '#000',
     borderRadius: 8,
     paddingLeft: 30,
     paddingHorizontal: 150,
     marginHorizontal: 50,
+    
   },
 });
