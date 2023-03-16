@@ -4,11 +4,44 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
 
+import authentication from '../../config/firebase-config';
+import {signOut} from 'firebase/auth';
+
 const Home = ({navigation}) => {
-  
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  const SignOutUser = () => {
+      signOut(authentication)
+        .then(re => {
+          console.log(re);
+          setIsSignedIn(false);
+        })
+        .catch(error => {
+          console.log(error);
+        });
+  };
+
+  const handleSignOutNavigate = () => {
+    if (isSignedIn == false) {
+      console.log("Signed Out Success")
+      navigation.navigate('SignIn');
+    } else {
+      console.log('Error');
+      // or show an error message to the user
+    }
+  };
+  const mapsGo = () => {
+   
+    navigation.navigate('MainLoc');
+    
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Label title="HOME"></Label>
+      <Button title="SignOut" color="#7BC9DE" textColor="white" onPress={handleSignOutNavigate}/>
+      <Gap height={8} />
+      <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo} />
     </ScrollView>
   );
 };

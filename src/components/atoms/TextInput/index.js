@@ -1,11 +1,20 @@
 import {StyleSheet, Text, View, TextInput as TextInputRN} from 'react-native';
 import React from 'react';
+import { keyboardType, secureTextEntry } from 'deprecated-react-native-prop-types/DeprecatedTextInputPropTypes'
 
-const TextInput = ({title, placeholder}) => {
+const TextInput = ({title, placeholder, onChangeText, value, keyboardType, secureTextEntry}) => {
   return (
     <View>
       <Text style={styles.text}>{title}</Text>
-      <TextInputRN style={styles.input} placeholder={placeholder} placeholderTextColor="#CCC6C6"/>
+      <TextInputRN
+        style={styles.input}
+        placeholder={placeholder}
+        placeholderTextColor="#CCC6C6"
+        onChangeText={onChangeText}
+        value={value}
+        keyboardType={keyboardType}
+        secureTextEntry={secureTextEntry}
+      />
     </View>
   );
 };

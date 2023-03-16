@@ -1,3 +1,4 @@
 import Exit from './exit.png';
+import Logo from './logo.svg';
 
-export {Exit};
+export {Exit, Logo};
