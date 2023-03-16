@@ -8,7 +8,7 @@ const Stack = createNativeStackNavigator();
 export default function Router() {
   return (
     <Stack.Navigator
-      initialRouteName="SignUp"
+      initialRouteName="SignIn"
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="MainLoc" component={MainLoc} />
       <Stack.Screen name="SignIn" component={SignIn} />

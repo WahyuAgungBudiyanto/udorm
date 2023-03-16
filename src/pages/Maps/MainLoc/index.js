@@ -9,9 +9,8 @@ import GuestCoordinate from '../GuestCoordinate';
 import JasmineCoordinate from '../JasmineCoordinate';
 import AnnexCoordinate from '../AnnexCoordinate';
 import ChapelCoordinate from '../ChapelCoordinate';
-import {getAuth} from 'firebase/auth';
 import {ref as r, getDatabase, child, get, update} from 'firebase/database';
-const db = getDatabase();
+import {db} from '../../../config/firebase-config';
 
 const MainLoc = ({}) => {
   const [initialRegion, setInitialRegion] = useState(null);
@@ -39,7 +38,6 @@ const MainLoc = ({}) => {
       {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
     );
   };
-
 
 
   useEffect(() => {
