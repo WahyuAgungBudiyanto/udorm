@@ -15,6 +15,7 @@ const Home = ({navigation}) => {
         .then(re => {
           console.log(re);
           setIsSignedIn(false);
+          handleSignOutNavigate();
         })
         .catch(error => {
           console.log(error);
@@ -39,7 +40,12 @@ const Home = ({navigation}) => {
   return (
     <ScrollView style={styles.container}>
       <Label title="HOME"></Label>
-      <Button title="SignOut" color="#7BC9DE" textColor="white" onPress={handleSignOutNavigate}/>
+      <Button
+        title="SignOut"
+        color="#7BC9DE"
+        textColor="white"
+        onPress={SignOutUser}
+      />
       <Gap height={8} />
       <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo} />
     </ScrollView>

@@ -13,7 +13,7 @@ import {storeData} from '../../utils/LocalStorage';
 const SignUp = ({navigation}) => {
   const [isChecked, setIsChecked] = useState(false);
 
-  const [selectedValue, setSelectedValue] = useState('1');
+  const [selectedValue, setSelectedValue] = useState('Crystal');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [FullName, setFullName] = useState('');
@@ -26,51 +26,56 @@ const SignUp = ({navigation}) => {
   };
 
   const Register = () => {
-     const noRegis = email.split('@')[0];
-     console.log('Selected Value: ', selectedValue);
-      createUserWithEmailAndPassword(authentication, email, password)
-        .then(re => {
-          console.log(re);
-          update(r(db, `Student/${noRegis}`), {
-            StudentType: selectedValue,
-            Email: email,
-            Name: FullName,
-            Parent: NumberParent,
-            Gender: Gender,
-            Faculty: Faculty,
-          });
-          Alert.alert('Success!', 'You are now registered');
-          setTimeout(() => {
-            navigation.navigate('SignIn');
-          }, 1000); // Add a 2-second (2000 milliseconds) delay before navigating
-        })
-        .catch(error => {
-          if (error.code === 'auth/invalid-email') {
-            console.log('Error:', error.message);
-            Alert.alert('Alert!', 'Email is not valid');
-          }else if (error.code === 'auth/missing-email') {
-            console.log('Error:', error.message);
-            Alert.alert('Alert!', 'Email is empty');
-          } else if (error.code === 'auth/weak-password') {
-            console.log('Error:', error.message);
-            Alert.alert('Alert!', 'Password should be at least 6 characters');
-          } else if (error.code === 'auth/email-already-in-use') {
-            console.log('Error:', error.message);
-            Alert.alert('Alert!', 'Email is already used, pick another one');
-          } else if (error.code === 'auth/network-request-failed') {
-           console.log('Error:', error.message);
-            Alert.alert('Alert!','Network error, please check your internet connection');
-          }else if (error.code === 'auth/internal-error') {
-            console.log('Error:', error.message);
-            Alert.alert('Alert!', 'Email or Password is empty');
-          } else {
-            console.log('Error:', error.message);
-          }
+    const noRegis = email.split('@')[0];
+    console.log('Selected Value: ', selectedValue);
+    createUserWithEmailAndPassword(authentication, email, password)
+      .then(re => {
+        console.log(re);
+        update(r(db, `Student/${authentication.currentUser.uid}`), {
+          StudentType: selectedValue,
+          Email: email,
+          Name: FullName,
+          Parent: NumberParent,
+          Gender: Gender,
+          Faculty: Faculty,
+          Location: '',
         });
-
+        const data = {
+          uid: re.user.uid,
+        };
+        storeData('user', data);
+        Alert.alert('Success!', 'You are now registered');
+        setTimeout(() => {
+          navigation.navigate('SignIn');
+        }, 1000); // Add a 2-second (2000 milliseconds) delay before navigating
+      })
+      .catch(error => {
+        if (error.code === 'auth/invalid-email') {
+          console.log('Error:', error.message);
+          Alert.alert('Alert!', 'Email is not valid');
+        } else if (error.code === 'auth/missing-email') {
+          console.log('Error:', error.message);
+          Alert.alert('Alert!', 'Email is empty');
+        } else if (error.code === 'auth/weak-password') {
+          console.log('Error:', error.message);
+          Alert.alert('Alert!', 'Password should be at least 6 characters');
+        } else if (error.code === 'auth/email-already-in-use') {
+          console.log('Error:', error.message);
+          Alert.alert('Alert!', 'Email is already used, pick another one');
+        } else if (error.code === 'auth/network-request-failed') {
+          console.log('Error:', error.message);
+          Alert.alert(
+            'Alert!',
+            'Network error, please check your internet connection',
+          );
+        } else if (error.code === 'auth/internal-error') {
+          console.log('Error:', error.message);
+          Alert.alert('Alert!', 'Email or Password is empty');
+        } else {
+          console.log('Error:', error.message);
+        }
+      });
   };
-
-
 
   return (
     <ScrollView style={styles.container}>
@@ -169,9 +174,19 @@ const SignUp = ({navigation}) => {
         onChangeText={text => setNumberParent(text)}
       />
       <Gap height={12} />
-      <TextInput title="Gender" placeholder="Male/Female" value={Gender} onChangeText={text => setGender(text)}/>
+      <TextInput
+        title="Gender"
+        placeholder="Male/Female"
+        value={Gender}
+        onChangeText={text => setGender(text)}
+      />
       <Gap height={12} />
-      <TextInput title="Faculty" placeholder="Ilmu Komputer" value={Faculty} onChangeText={text => setFaculty(text)}/>
+      <TextInput
+        title="Faculty"
+        placeholder="Ilmu Komputer"
+        value={Faculty}
+        onChangeText={text => setFaculty(text)}
+      />
       <Gap height={20} />
 
       <Button

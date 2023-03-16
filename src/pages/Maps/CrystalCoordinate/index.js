@@ -50,7 +50,7 @@ const CrystalCoordinate = ({userLocation}) => {
   useEffect(() => {
     const intervalId = setInterval(() => {
       isPointInPolygon(userLocation, polygonCoords);
-    }, 1000);
+    }, 2000);
     return () => clearInterval(intervalId);
   }, [userLocation]);
   return (
