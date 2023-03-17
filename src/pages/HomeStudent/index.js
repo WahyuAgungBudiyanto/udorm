@@ -7,7 +7,7 @@ import {Header, Button, TextInput, Gap, Label} from '../../components';
 import authentication from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
 
-const Home = ({navigation}) => {
+const HomeStudent = ({navigation}) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
   const SignOutUser = () => {
@@ -39,7 +39,7 @@ const Home = ({navigation}) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Label title="HOME"></Label>
+      <Label title="HomeStudent"></Label>
       <Button
         title="SignOut"
         color="#7BC9DE"
@@ -52,7 +52,7 @@ const Home = ({navigation}) => {
   );
 };
 
-export default Home;
+export default HomeStudent;
 
 const styles = StyleSheet.create({
   container: {

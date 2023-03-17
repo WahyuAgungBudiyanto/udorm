@@ -5,11 +5,34 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
 import { Eye } from '../../assets/icons';
 import {Picker} from '@react-native-picker/picker';
+import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
+import {getDatabase, ref as r, get} from 'firebase/database';
+
+
+const checkUserType = async uid => {
+  const db = getDatabase();
+
+  // Check if the user exists in the Monitor section
+  const monitorRef = r(db, `Monitor/${uid}`);
+  const monitorSnapshot = await get(monitorRef);
+  if (monitorSnapshot.exists()) {
+    return 'Monitor';
+  }
+
+  // Check if the user exists in the Student section
+  const studentRef = r(db, `Student/${uid}`);
+  const studentSnapshot = await get(studentRef);
+  if (studentSnapshot.exists()) {
+    return 'Student';
+  }
+  
+  return null;
+};
 
 const SignIn = ({navigation}) => {
-  const [selectedValue, setSelectedValue] = useState('option1');
+  const [selectedValue, setSelectedValue] = useState('Student');
   const [isChecked, setIsChecked] = useState(false);
   
   const handleCheck = () => {
@@ -19,16 +42,31 @@ const SignIn = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const Login = () => {
-  const emails = `${email}@student.unklab.ac.id`;
+const Login = async () => {
+ const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
+
   signInWithEmailAndPassword(authentication, emails, password)
-    .then(re => {
+    .then(async re => {
       console.log(re);
-      setIsSignedIn(true);
-      Alert.alert('Success!', 'You are now logged in');
-      setTimeout(() => {
-        navigation.navigate('Home');
-      }, 1000); // Add a 2-second (2000 milliseconds) delay before navigating
+      const uid = re.user.uid;
+
+      const userType = await checkUserType(uid);
+
+      if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
+        setIsSignedIn(true);
+        Alert.alert('Success!', 'You are now logged in');
+
+        // Navigate to the appropriate home screen based on the user type
+        setTimeout(() => {
+          if (userType === 'Monitor') {
+            navigation.navigate('HomeMonitor');
+          } else if (userType === 'Student') {
+            navigation.navigate('HomeStudent');
+          }
+        }, 1000); // Add a 1-second (1000 milliseconds) delay before navigating
+      } else {
+        Alert.alert('Error!', 'Invalid user type');
+      }
     })
     .catch(error => {
       if (error.code === 'auth/user-not-found') {
@@ -37,27 +75,17 @@ const SignIn = ({navigation}) => {
       } else if (error.code === 'auth/wrong-password') {
         console.log('Incorrect password.');
         Alert.alert('Alert!', 'Incorrect Password');
-      }else if (error.code === 'auth/invalid-email') {
+      } else if (error.code === 'auth/invalid-email') {
         console.log('Please fill it');
         Alert.alert('Alert!', 'Email or Password is empty');
-      }else if (error.code === 'auth/internal-error') {
+      } else if (error.code === 'auth/internal-error') {
         console.log('Please fill it');
         Alert.alert('Alert!', 'Email or Password is empty');
       } else {
         console.log('Error:', error.message);
       }
     });
-  };
-
-  const createTwoButtonAlert = () =>
-    Alert.alert('Alert Title', 'My Alert Msg', [
-      {
-        text: 'Cancel',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {text: 'OK', onPress: () => console.log('OK Pressed')},
-    ]);
+};
 
 
   return (
@@ -91,13 +119,13 @@ const SignIn = ({navigation}) => {
             }
             dropdownIconColor="#7BC9DE">
             <Picker.Item
-              label="Monitor"
-              value="monitor"
+              label="Student"
+              value="Student"
               style={styles.pickerItem}
             />
             <Picker.Item
-              label="Mahasiswa"
-              value="mahasiswa"
+              label="Monitor"
+              value="monitor"
               style={styles.pickerItem}
             />
           </Picker>
@@ -107,6 +135,11 @@ const SignIn = ({navigation}) => {
 
       <CustomTextInput
         title="Email"
+        textFill={
+          selectedValue === 'monitor'
+            ? '@monitor.unklab.ac.id'
+            : '@student.unklab.ac.id'
+        }
         placeholder="S11910102"
         value={email}
         onChangeText={text => setEmail(text)}
@@ -120,7 +153,7 @@ const SignIn = ({navigation}) => {
         onChangeText={text => setPassword(text)}
         secureTextEntry={true}
       />
-     
+
       <Gap height={12} />
       <View style={styles.remember}>
         <TouchableOpacity

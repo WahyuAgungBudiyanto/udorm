@@ -1,8 +1,9 @@
 //pages
 import SignIn from './SignIn';
 import SignUp from './SignUp';
-import Home from './Home';
+import HomeStudent from './HomeStudent';
+import HomeMonitor from './HomeMonitor';
 import Maps from './Maps';
 import Background from './Background';
 
-export {SignIn, SignUp, Home, Maps, Background};
+export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background};

@@ -157,6 +157,7 @@ const SignUp = ({navigation}) => {
       <Gap height={12} />
       <CustomTextInput
         title="Email"
+        textFill="@student.unklab.ac.id"
         placeholder="S11910102"
         value={email}
         onChangeText={text => setEmail(text)}

@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, TextInput, StyleSheet, Image} from 'react-native';
 const Eye = require('../../../assets/icons/eye.svg');
 
-const CustomTextInput = ({title, placeholder, value, onChangeText}) => {
+const CustomTextInput = ({title, placeholder, value, onChangeText,textFill}) => {
   return (
     <View>
       <Text style={styles.title}>{title}</Text>
@@ -16,7 +16,7 @@ const CustomTextInput = ({title, placeholder, value, onChangeText}) => {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <Text style={styles.emailSuffix}>@student.unklab.ac.id</Text>
+        <Text style={styles.emailSuffix}>{textFill}</Text>
       </View>
     </View>
   );

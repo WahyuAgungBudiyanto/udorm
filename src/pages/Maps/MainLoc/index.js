@@ -20,25 +20,45 @@ const MainLoc = ({}) => {
   const uid = authentication.currentUser.uid;
   const [inside, setInside] = useState(false);
   const [studentType, setStudentType] = useState(null);
+  const [userType, setUserType] = useState(null);
 
-const fetchStudentType = () => {
-  const studentTypeRef = r(db, `Student/${uid}/StudentType`);
-  onValue(
-    studentTypeRef,
-    snapshot => {
-      if (snapshot.exists()) {
-        setStudentType(snapshot.val());
-      } else {
-        console.log('No data available');
-      }
-    },
-    error => {
-      console.error(error);
-    },
-  );
-};
+  
+  const checkUserType = async uid => {
+    const db = getDatabase();
 
+    // Check if the user exists in the Monitor section
+    const monitorRef = r(db, `Monitor/${uid}`);
+    const monitorSnapshot = await get(monitorRef);
+    if (monitorSnapshot.exists()) {
+      return 'Monitor';
+    }
 
+    // Check if the user exists in the Student section
+    const studentRef = r(db, `Student/${uid}`);
+    const studentSnapshot = await get(studentRef);
+    if (studentSnapshot.exists()) {
+      return 'Student';
+    }
+
+    return null;
+  };
+
+  const fetchStudentType = () => {
+    const studentTypeRef = r(db, `Student/${uid}/StudentType`);
+    onValue(
+      studentTypeRef,
+      snapshot => {
+        if (snapshot.exists()) {
+          setStudentType(snapshot.val());
+        } else {
+          console.log('No data available');
+        }
+      },
+      error => {
+        console.error(error);
+      },
+    );
+  };
 
   const updateUserLocation = (location, inside) => {
     update(r(db, `Student/${uid}/Location`), {
@@ -49,6 +69,10 @@ const fetchStudentType = () => {
   };
 
   const getCurrentLocation = inside => {
+    if (userType === 'Monitor') {
+      return;
+    }
+
     Geolocation.getCurrentPosition(
       position => {
         const location = {
@@ -62,22 +86,34 @@ const fetchStudentType = () => {
     );
   };
 
-useEffect(() => {
+  useEffect(() => {
   if (uid) {
-    const locationUpdateInterval = setInterval(() => {
-      getCurrentLocation(inside);
-    }, 1000);
+    (async () => {
+      const type = await checkUserType(uid);
+      setUserType(type);
+    })();
 
     fetchStudentType();
 
-    return () => {
-      clearInterval(locationUpdateInterval);
+    if (userType !== 'Monitor') {
+      const locationUpdateInterval = setInterval(() => {
+        getCurrentLocation(inside);
+      }, 1000);
+
+      return () => {
+        clearInterval(locationUpdateInterval);
+        // Remove the listener
+        const studentTypeRef = r(db, `Student/${uid}/StudentType`);
+        off(studentTypeRef);
+      };
+    } else {
       // Remove the listener
       const studentTypeRef = r(db, `Student/${uid}/StudentType`);
       off(studentTypeRef);
-    };
+    }
   }
-}, [uid, inside]);
+}, [uid, inside, userType]);
+
 
 
   useEffect(() => {
