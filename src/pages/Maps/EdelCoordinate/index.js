@@ -1,7 +1,7 @@
 import {Polygon} from 'react-native-maps';
 import React, {useEffect} from 'react';
 
-const EdelCoordinate = ({userLocation}) => {
+const EdelCoordinate = ({userLocation, onInsideChange}) => {
   const polygonCoords = [
     {latitude: 1.417083571545593, longitude: 124.98482484966706},
     {latitude: 1.4170688238882165, longitude: 124.98460222625258},
@@ -50,17 +50,18 @@ const EdelCoordinate = ({userLocation}) => {
   }
   useEffect(() => {
     const intervalId = setInterval(() => {
-      isPointInPolygon(userLocation, polygonCoords);
+      const inside = isPointInPolygon(userLocation, polygonCoords);
+      onInsideChange(inside);
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [userLocation]);
+  }, [userLocation, onInsideChange]);
   return (
     <Polygon
       key={'EdelCoordinate'}
       coordinates={polygonCoords}
       fillColor={
         isPointInPolygon(userLocation, polygonCoords)
-          ? 'rgba(102, 255, 102, 0.5)'
+          ? 'rgb(102, 255, 102)'
           : 'rgba(255,0,0,0.5)'
       }
       //strokeColor="rgba(0,0,0,0.5)"

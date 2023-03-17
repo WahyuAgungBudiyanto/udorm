@@ -1,7 +1,7 @@
 import {Polygon} from 'react-native-maps';
 import React, {useEffect} from 'react';
 
-const GensetCoordinate = ({userLocation}) => {
+const GensetCoordinate = ({userLocation, onInsideChange}) => {
   const polygonCoords = [
     {latitude: 1.4180003560032515, longitude: 124.98189596421496},
     {latitude: 1.4179239364477296, longitude: 124.98183762616121},
@@ -43,17 +43,18 @@ const GensetCoordinate = ({userLocation}) => {
   }
   useEffect(() => {
     const intervalId = setInterval(() => {
-      isPointInPolygon(userLocation, polygonCoords);
+      const inside = isPointInPolygon(userLocation, polygonCoords);
+      onInsideChange(inside);
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [userLocation]);
+  }, [userLocation, onInsideChange]);
   return (
     <Polygon
       key={'GensetCoordinate'}
       coordinates={polygonCoords}
       fillColor={
         isPointInPolygon(userLocation, polygonCoords)
-          ? 'rgba(102, 255, 102, 0.5)'
+          ? 'rgb(102, 255, 102)'
           : 'rgba(255,0,0,0.5)'
       }
       //strokeColor="rgba(0,0,0,0.5)"

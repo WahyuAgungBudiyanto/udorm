@@ -1,7 +1,7 @@
 import {Polygon} from 'react-native-maps';
 import React, {useEffect} from 'react';
 
-const AnnexCoordinate = ({userLocation}) => {
+const AnnexCoordinate = ({userLocation, onInsideChange}) => {
   const polygonCoords = [
     {latitude: 1.4181863819860405, longitude: 124.98330082734202},
     {latitude: 1.4181783378042592, longitude: 124.98318549229985},
@@ -47,17 +47,18 @@ const AnnexCoordinate = ({userLocation}) => {
   }
   useEffect(() => {
     const intervalId = setInterval(() => {
-      isPointInPolygon(userLocation, polygonCoords);
+      const inside = isPointInPolygon(userLocation, polygonCoords);
+      onInsideChange(inside);
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [userLocation]);
+  }, [userLocation, onInsideChange]);
   return (
     <Polygon
       key={'AnnexCoordinate'}
       coordinates={polygonCoords}
       fillColor={
         isPointInPolygon(userLocation, polygonCoords)
-          ? 'rgba(102, 255, 102, 0.5)'
+          ? 'rgb(102, 255, 102)'
           : 'rgba(255,0,0,0.5)'
       }
       //strokeColor="rgba(0,0,0,0.5)"

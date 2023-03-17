@@ -3,7 +3,7 @@ import {StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert} from 'reac
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
 import {Picker} from '@react-native-picker/picker';
-import {Header, Button, TextInput, Gap, Label} from '../../components';
+import {Header, Button, TextInput, Gap, Label, CustomTextInput} from '../../components';
 
 import authentication,{db} from '../../config/firebase-config'
 import {createUserWithEmailAndPassword} from 'firebase/auth';
@@ -27,13 +27,16 @@ const SignUp = ({navigation}) => {
 
   const Register = () => {
     const noRegis = email.split('@')[0];
-    console.log('Selected Value: ', selectedValue);
-    createUserWithEmailAndPassword(authentication, email, password)
+    //console.log('Selected Value: ', selectedValue);
+    const emails = `${email}@student.unklab.ac.id`;
+    //console.log(emails)
+    
+    createUserWithEmailAndPassword(authentication, emails, password)
       .then(re => {
         console.log(re);
         update(r(db, `Student/${authentication.currentUser.uid}`), {
           StudentType: selectedValue,
-          Email: email,
+          Email: emails,
           Name: FullName,
           Parent: NumberParent,
           Gender: Gender,
@@ -152,7 +155,7 @@ const SignUp = ({navigation}) => {
         onChangeText={text => setFullName(text)}
       />
       <Gap height={12} />
-      <TextInput
+      <CustomTextInput
         title="Email"
         placeholder="S11910102"
         value={email}
@@ -232,7 +235,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   pickerContainer: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 0.1,
     marginHorizontal: 50,
     borderWidth: 1,
     borderColor: 'black',

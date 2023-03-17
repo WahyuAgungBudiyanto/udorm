@@ -9,46 +9,76 @@ import GuestCoordinate from '../GuestCoordinate';
 import JasmineCoordinate from '../JasmineCoordinate';
 import AnnexCoordinate from '../AnnexCoordinate';
 import ChapelCoordinate from '../ChapelCoordinate';
-import {ref as r, getDatabase, child, get, update} from 'firebase/database';
+import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
+
 import {db} from '../../../config/firebase-config';
 
 const MainLoc = ({}) => {
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
   const [mapReady, setMapReady] = useState(false);
-  const uid = authentication.currentUser.uid; 
+  const uid = authentication.currentUser.uid;
+  const [inside, setInside] = useState(false);
+  const [studentType, setStudentType] = useState(null);
 
-  const updateUserLocation = (location) => {
+const fetchStudentType = () => {
+  const studentTypeRef = r(db, `Student/${uid}/StudentType`);
+  onValue(
+    studentTypeRef,
+    snapshot => {
+      if (snapshot.exists()) {
+        setStudentType(snapshot.val());
+      } else {
+        console.log('No data available');
+      }
+    },
+    error => {
+      console.error(error);
+    },
+  );
+};
+
+
+
+  const updateUserLocation = (location, inside) => {
     update(r(db, `Student/${uid}/Location`), {
       latitude: location.latitude,
       longitude: location.longitude,
+      inside: inside,
     });
   };
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = inside => {
     Geolocation.getCurrentPosition(
       position => {
         const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-        updateUserLocation(location);
+        updateUserLocation(location, inside);
       },
       error => console.log(error),
       {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
     );
   };
 
+useEffect(() => {
+  if (uid) {
+    const locationUpdateInterval = setInterval(() => {
+      getCurrentLocation(inside);
+    }, 1000);
 
-  useEffect(() => {
-    if (uid) {
-      const locationUpdateInterval = setInterval(() => {
-        getCurrentLocation();
-      }, 2000);
+    fetchStudentType();
 
-      return () => clearInterval(locationUpdateInterval);
-    }
-  }, [uid]);
+    return () => {
+      clearInterval(locationUpdateInterval);
+      // Remove the listener
+      const studentTypeRef = r(db, `Student/${uid}/StudentType`);
+      off(studentTypeRef);
+    };
+  }
+}, [uid, inside]);
+
 
   useEffect(() => {
     async function requestLocationPermission() {
@@ -107,13 +137,42 @@ const MainLoc = ({}) => {
         showsMyLocationButton={true}>
         {mapReady && (
           <>
-            <CrystalCoordinate userLocation={initialRegion} />
-            <EdelCoordinate userLocation={initialRegion} />
-            <GensetCoordinate userLocation={initialRegion} />
-            <GuestCoordinate userLocation={initialRegion} />
-            <JasmineCoordinate userLocation={initialRegion} />
-            <AnnexCoordinate userLocation={initialRegion} />
-            <ChapelCoordinate userLocation={initialRegion} />
+            {studentType === 'Crystal' && (
+              <CrystalCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
+            {studentType === 'Edel' && (
+              <EdelCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
+            {studentType === 'Genset' && (
+              <GensetCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
+            {studentType === 'Guest' && (
+              <GuestCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
+            {studentType === 'Jasmine' && (
+              <JasmineCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
+            {studentType === 'Annex' && (
+              <AnnexCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            )}
           </>
         )}
       </MapView>

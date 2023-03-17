@@ -1,7 +1,7 @@
 import {Polygon} from 'react-native-maps';
 import React, {useEffect} from 'react';
 
-const CrystalCoordinate = ({userLocation}) => {
+const CrystalCoordinate = ({userLocation, onInsideChange}) => {
   const polygonCoords = [
     {latitude: 1.4170968843899396, longitude: 124.9833921186385},
     {latitude: 1.4170888402025656, longitude: 124.9832667253487},
@@ -49,10 +49,11 @@ const CrystalCoordinate = ({userLocation}) => {
   }
   useEffect(() => {
     const intervalId = setInterval(() => {
-      isPointInPolygon(userLocation, polygonCoords);
+      const inside = isPointInPolygon(userLocation, polygonCoords);
+      onInsideChange(inside);
     }, 1000);
     return () => clearInterval(intervalId);
-  }, [userLocation]);
+  }, [userLocation, onInsideChange]);
   return (
     <Polygon
       key={'CrystalCoordinate'}
