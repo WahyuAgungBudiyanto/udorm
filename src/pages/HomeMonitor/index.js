@@ -4,12 +4,14 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
 
-import authentication from '../../config/firebase-config';
+import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
+import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
+
 
 const HomeMonitor = ({navigation}) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
-
+  const uid = authentication.currentUser.uid;
   const SignOutUser = () => {
       signOut(authentication)
         .then(re => {
@@ -31,11 +33,60 @@ const HomeMonitor = ({navigation}) => {
       // or show an error message to the user
     }
   };
+
+    const checkUserType = async uid => {
+      const db = getDatabase();
+
+      // Check if the user exists in the Monitor section
+      const monitorRef = r(db, `Monitor/${uid}`);
+      const monitorSnapshot = await get(monitorRef);
+      if (monitorSnapshot.exists()) {
+        return 'Monitor';
+      }
+
+      // Check if the user exists in the Student section
+      const studentRef = r(db, `Student/${uid}`);
+      const studentSnapshot = await get(studentRef);
+      if (studentSnapshot.exists()) {
+        return 'Student';
+      }
+
+      return null;
+    };
+const resetStudentLocations = async () => {
+  const db = getDatabase();
+  const userType = await checkUserType(uid);
+
+  if (userType === 'Monitor') {
+    const studentRef = r(db, 'Student'); // Define the studentRef variable here
+    const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
+    snapshot.forEach(childSnapshot => {
+      const studentUID = childSnapshot.key;
+      update(r(db, `Student/${studentUID}/Location`), {
+        latitude: 0,
+        longitude: 0,
+        inside: false,
+      });
+    });
+  } else {
+    console.log('User is not a Monitor');
+  }
+};
+
+
+
+
+
+
+
+
+
   const mapsGo = () => {
-   
+    resetStudentLocations();
     navigation.navigate('MainLoc');
     
   };
+  
 
   return (
     <ScrollView style={styles.container}>

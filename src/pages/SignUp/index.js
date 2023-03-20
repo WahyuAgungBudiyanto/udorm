@@ -53,30 +53,9 @@ const SignUp = ({navigation}) => {
         }, 1000); // Add a 2-second (2000 milliseconds) delay before navigating
       })
       .catch(error => {
-        if (error.code === 'auth/invalid-email') {
+        Alert.alert('Alert!', error.message);
           console.log('Error:', error.message);
-          Alert.alert('Alert!', 'Email is not valid');
-        } else if (error.code === 'auth/missing-email') {
-          console.log('Error:', error.message);
-          Alert.alert('Alert!', 'Email is empty');
-        } else if (error.code === 'auth/weak-password') {
-          console.log('Error:', error.message);
-          Alert.alert('Alert!', 'Password should be at least 6 characters');
-        } else if (error.code === 'auth/email-already-in-use') {
-          console.log('Error:', error.message);
-          Alert.alert('Alert!', 'Email is already used, pick another one');
-        } else if (error.code === 'auth/network-request-failed') {
-          console.log('Error:', error.message);
-          Alert.alert(
-            'Alert!',
-            'Network error, please check your internet connection',
-          );
-        } else if (error.code === 'auth/internal-error') {
-          console.log('Error:', error.message);
-          Alert.alert('Alert!', 'Email or Password is empty');
-        } else {
-          console.log('Error:', error.message);
-        }
+        
       });
   };
 

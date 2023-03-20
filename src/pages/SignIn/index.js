@@ -14,6 +14,7 @@ import {getDatabase, ref as r, get} from 'firebase/database';
 const checkUserType = async uid => {
   const db = getDatabase();
 
+   
   // Check if the user exists in the Monitor section
   const monitorRef = r(db, `Monitor/${uid}`);
   const monitorSnapshot = await get(monitorRef);
@@ -111,24 +112,24 @@ const Login = async () => {
       <Gap height={8} />
       <View style={styles.pickerContainer}>
         <View style={styles.pickerWrapper}>
-          <Picker
-            style={[styles.picker, {flex: 1}]}
-            selectedValue={selectedValue}
-            onValueChange={(itemValue, itemIndex) =>
-              setSelectedValue(itemValue)
-            }
-            dropdownIconColor="#7BC9DE">
-            <Picker.Item
-              label="Student"
-              value="Student"
-              style={styles.pickerItem}
-            />
-            <Picker.Item
-              label="Monitor"
-              value="monitor"
-              style={styles.pickerItem}
-            />
-          </Picker>
+            <Picker
+              style={[styles.picker, {flex: 1}]}
+              selectedValue={selectedValue}
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedValue(itemValue)
+              }
+              dropdownIconColor="#7BC9DE">
+              <Picker.Item
+                label="Student"
+                value="Student"
+                style={styles.pickerItem}
+              />
+              <Picker.Item
+                label="Monitor"
+                value="monitor"
+                style={styles.pickerItem}
+              />
+            </Picker>
         </View>
       </View>
       <Gap height={12} />
