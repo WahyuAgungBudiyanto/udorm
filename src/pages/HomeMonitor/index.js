@@ -82,7 +82,7 @@ const resetStudentLocations = async () => {
 
 
   const mapsGo = () => {
-    resetStudentLocations();
+    //resetStudentLocations();
     navigation.navigate('MainLoc');
     
   };

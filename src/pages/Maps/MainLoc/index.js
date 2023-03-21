@@ -1,7 +1,8 @@
-import {StyleSheet, View, PermissionsAndroid, Text, Pressable} from 'react-native';
+import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Animated  } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
+import {ZoomIn, ZoomOut} from '../../../assets/images';
 import CrystalCoordinate from '../CrystalCoordinate';
 import EdelCoordinate from '../EdelCoordinate';
 import GensetCoordinate from '../GensetCoordinate';
@@ -32,6 +33,9 @@ const MainLoc = ({navigation}) => {
   const [studentType, setStudentType] = useState(null);
   const [userType, setUserType] = useState(null);
   const [studentLocations, setStudentLocations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [monitorCoordinate, setMonitorCoordinate] = useState(null);
+
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -79,30 +83,32 @@ const MainLoc = ({navigation}) => {
     });
   };
 
-  const getCurrentLocation = inside => {
-    if (userType === 'Monitor') {
-      return;
-    }
+const getCurrentLocation = inside => {
+  if (userType === 'Monitor') {
+    return;
+  }
 
-    Geolocation.getCurrentPosition(
-      position => {
-        const location = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        updateUserLocation(location, inside);
-      },
-      error => console.log(error),
-      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
-    );
-  };
+  Geolocation.getCurrentPosition(
+    position => {
+      const location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+      updateUserLocation(location, inside);
+    },
+    error => console.log(error),
+    {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+  );
+};
+
 
   useEffect(() => {
     if (uid) {
       (async () => {
         const type = await checkUserType(uid);
         setUserType(type);
-      })();
+     
+    })();
 
       fetchStudentType();
 
@@ -148,6 +154,9 @@ const MainLoc = ({navigation}) => {
     }
   }, [uid, inside, userType]);
 
+
+
+
   useEffect(() => {
     async function requestLocationPermission() {
       try {
@@ -184,12 +193,134 @@ const MainLoc = ({navigation}) => {
     return () => clearInterval(watchId);
   }, []);
 
-  const onMapReady = () => {
-    setMapReady(true);
-    if (initialRegion) {
-      mapRef.animateToRegion(initialRegion, 2000);
+  useEffect(() => {
+  if (userType === 'Monitor') {
+    setMonitorCoordinate({
+      latitude: 1.4174552420479594, // Your fixed latitude value,
+      longitude: 124.98335068219275, // Your fixed longitude value,
+    });
+  }
+}, [userType]);
+
+const focusOnMonitor = () => {
+  // Return immediately if the user is not a Monitor
+  if (userType !== 'Monitor') {
+    if (mapRef && initialRegion) {
+      mapRef.animateToRegion(
+        {
+          latitude: initialRegion.latitude,
+          longitude: initialRegion.longitude,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
+        },
+        2000,
+      );
     }
-  };
+    return;
+  }
+
+  if (mapRef && monitorCoordinate) {
+    mapRef.animateToRegion(
+      {
+        latitude: monitorCoordinate.latitude,
+        longitude: monitorCoordinate.longitude,
+        latitudeDelta: 0.0036,
+        longitudeDelta: 0.0036,
+      },
+      2000,
+    );
+  }
+};
+
+useEffect(() => {
+  focusOnMonitor();
+}, [monitorCoordinate, mapRef, userType]);
+
+
+
+const onMapReady = () => {
+  setMapReady(true);
+  if (userType === 'Monitor') {
+    setInitialRegion({
+      latitude: monitorCoordinate.latitude,
+      longitude: monitorCoordinate.longitude,
+      latitudeDelta: 0.001,
+      longitudeDelta: 0.001,
+    });
+  } else {
+    mapRef.animateToRegion(initialRegion, 2000);
+  }
+  focusOnMonitor(); // Add this line
+};
+
+
+
+
+
+const incrementPointsForAbsentStudents = async studentsInsideStatus => {
+  setIsLoading(true); // Set loading state to true
+
+  for (const studentUid in studentsInsideStatus) {
+    if (!studentsInsideStatus[studentUid]) {
+      const pointsRef = r(db, `Student/${studentUid}/points`);
+      const pointsSnapshot = await get(pointsRef);
+      const currentPoints = pointsSnapshot.exists()
+        ? Number(pointsSnapshot.val()) // Convert the value to a number
+        : 0;
+      const newPoints = currentPoints + 1;
+      await update(r(db, `Student/${studentUid}`), {points: newPoints});
+    }
+  }
+
+  setIsLoading(false); // Set loading state to false
+  Alert.alert('Done', 'Points updated for all absent students');
+  resetStudentLocations();
+};
+
+
+const checkAllStudentsInsideStatus = async () => {
+  const studentsRef = r(db, 'Student');
+  const studentsSnapshot = await get(studentsRef);
+
+  if (studentsSnapshot.exists()) {
+    const studentsData = studentsSnapshot.val();
+    const insideStatuses = {};
+
+    for (const studentUid in studentsData) {
+      const inside = studentsData[studentUid]?.Location?.inside;
+      insideStatuses[studentUid] = inside;
+    }
+
+    return insideStatuses;
+  } else {
+    return null;
+  }
+};
+const handleAbsentNowPress = async () => {
+  const allStudentsInsideStatus = await checkAllStudentsInsideStatus();
+  console.log('Inside statuses for all students:', allStudentsInsideStatus);
+  await incrementPointsForAbsentStudents(allStudentsInsideStatus);
+};
+
+const resetStudentLocations = async () => {
+  const db = getDatabase();
+  const userType = await checkUserType(uid);
+
+  if (userType === 'Monitor') {
+    const studentRef = r(db, 'Student'); // Define the studentRef variable here
+    const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
+    snapshot.forEach(childSnapshot => {
+      const studentUID = childSnapshot.key;
+      update(r(db, `Student/${studentUID}/Location`), {
+        latitude: 0,
+        longitude: 0,
+        inside: false,
+      });
+    });
+  } else {
+    console.log('User is not a Monitor');
+  }
+};
 
   return (
     <View style={{flex: 1}}>
@@ -205,39 +336,155 @@ const MainLoc = ({navigation}) => {
         showsMyLocationButton={true}>
         {mapReady && (
           <>
-            {studentType === 'Crystal' || userType === 'Monitor' ? <CrystalCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {studentType === 'Edel' || userType === 'Monitor' ? <EdelCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {studentType === 'Genset' || userType === 'Monitor' ? <GensetCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {studentType === 'Guest' || userType === 'Monitor' ? <GuestCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {studentType === 'Jasmine' || userType === 'Monitor' ? <JasmineCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {studentType === 'Annex' || userType === 'Monitor' ? <AnnexCoordinate userLocation={initialRegion} onInsideChange={setInside}/> : null}
-            {(['Crystal', 'Edel', 'Genset', 'Guest', 'Jasmine', 'Annex'].includes(studentType) || userType === 'Monitor') && (
-                <ChapelCoordinate userLocation={initialRegion} onInsideChange={setInside}/>
+            {studentType === 'Crystal' || userType === 'Monitor' ? (
+              <CrystalCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {studentType === 'Edel' || userType === 'Monitor' ? (
+              <EdelCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {studentType === 'Genset' || userType === 'Monitor' ? (
+              <GensetCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {studentType === 'Guest' || userType === 'Monitor' ? (
+              <GuestCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {studentType === 'Jasmine' || userType === 'Monitor' ? (
+              <JasmineCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {studentType === 'Annex' || userType === 'Monitor' ? (
+              <AnnexCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
+            ) : null}
+            {([
+              'Crystal',
+              'Edel',
+              'Genset',
+              'Guest',
+              'Jasmine',
+              'Annex',
+            ].includes(studentType) ||
+              userType === 'Monitor') && (
+              <ChapelCoordinate
+                userLocation={initialRegion}
+                onInsideChange={setInside}
+              />
             )}
+            {/*{userType === 'Monitor' && monitorCoordinate && (
+              <Marker
+                key={'monitor'}
+                coordinate={monitorCoordinate}
+                title="Monitor">
+                <View>
+                   <Image
+                    source={require('../../../assets/images/monitor_icon.png')}
+                    style={{width: 32, height: 32}}
+                  /> 
+                </View>
+              </Marker>
+            )}*/}
+
             {userType === 'Monitor' &&
-              studentLocations.map((location, index) => (
-                
+              studentLocations.map(location => (
                 <Marker
-                  key={index}
+                  key={location.uid}
                   coordinate={{
                     latitude: location.latitude,
                     longitude: location.longitude,
                   }}
-                  title={`Student ${index + 1}`}
-                />
+                  title={`Student ${location.uid}`}>
+                  <Image
+                    style={{width: 15, height: 15}}
+                    source={require('../../../assets/images/face.png')}
+                  />
+
+                  {/* <View>
+                      <Image source={Face} style={{width: 32, height: 32}} />
+                    </View> */}
+                </Marker>
               ))}
           </>
         )}
       </MapView>
+      {/* <Pressable
+        style={({pressed}) => [
+          styles.focusMonitorZI,
+          pressed ? styles.buttonPressed : styles.buttonNotPressed,
+          {opacity: pressed ? 0.5 : 1},
+        ]}
+        onPress={focusOnMonitor}>
+        <View>
+          <Image source={ZoomIn} style={{width: 20, height: 20}} />
+        </View>
+      </Pressable> */}
       <Pressable
         style={({pressed}) => [
-          styles.floatingButton,
+          styles.focusMonitorZO,
+          pressed ? styles.buttonPressed : styles.buttonNotPressed,
+          {opacity: pressed ? 0.5 : 1},
+        ]}
+        onPress={focusOnMonitor}>
+        <View>
+          <Image source={ZoomOut} style={{width: 20, height: 20}} />
+        </View>
+      </Pressable>
+      <Pressable
+        style={({pressed}) => [
+          styles.backBtn,
           pressed ? styles.buttonPressed : styles.buttonNotPressed,
           {opacity: pressed ? 0.5 : 1},
         ]}
         onPress={handleButtonPress}>
-        <Text style={styles.buttonText}>ABSENT NOW</Text>
+        <Text style={styles.buttonText}>Back</Text>
       </Pressable>
+
+      {userType === 'Monitor' && (
+        <Pressable
+          style={({pressed}) => [
+            styles.floatingButton,
+            pressed ? styles.buttonPressed : styles.buttonNotPressed,
+            {opacity: pressed ? 0.5 : 1},
+          ]}
+          onPress={handleAbsentNowPress}>
+          <Text style={styles.buttonText}>ABSENT NOW</Text>
+        </Pressable>
+      )}
+      {isLoading && (
+        <View
+          style={{
+            position: 'absolute',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust the color and opacity as needed
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 1,
+          }}>
+          <ActivityIndicator
+            size="large"
+            color="#FFFF" // Change the color to your desired color
+          />
+          <Text style={styles.loadingText}>Searching for all students...</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -248,9 +495,40 @@ const MainLoc = ({navigation}) => {
 export default MainLoc;
 
 const styles = StyleSheet.create({
-  floatingButton: {
+  loadingText: {
+    marginTop: 10,
+    color: '#FFFFFF',
+    fontSize: 18,
+  },
+  focusMonitorZO: {
+    position: 'absolute',
+    top: 55,
+    right: 12,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+  focusMonitorZI: {
+    position: 'absolute',
+    top: 13,
+    right: 55,
+    paddingHorizontal: 9,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+
+  backBtn: {
     position: 'absolute',
     bottom: 20,
+    left: 170,
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+
+  floatingButton: {
+    position: 'absolute',
+    bottom: 60,
     alignSelf: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,

@@ -48,13 +48,19 @@ const Router = () => {
       } else {
         setUser(null);
       }
-
-      setLoading(false);
     });
 
     return () => {
       unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 3000); // 5 seconds delay
+
+    return () => clearTimeout(timeout);
   }, []);
 
   if (loading) {
@@ -85,7 +91,6 @@ const Router = () => {
       )}
     </Stack.Navigator>
   );
-
 };
 
 export default Router;

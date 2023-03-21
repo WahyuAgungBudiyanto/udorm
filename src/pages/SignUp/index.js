@@ -42,6 +42,7 @@ const SignUp = ({navigation}) => {
           Gender: Gender,
           Faculty: Faculty,
           Location: '',
+          points: 0
         });
         const data = {
           uid: re.user.uid,
