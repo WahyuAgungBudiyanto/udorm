@@ -14,8 +14,6 @@ import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/
 import authentication, {db} from '../../../config/firebase-config';
 
 const MainLoc = ({navigation}) => {
-
-  
   const handleButtonPress = () => {
     // Add your logic here
   if (userType === 'Monitor') {
@@ -291,16 +289,74 @@ const checkAllStudentsInsideStatus = async () => {
       insideStatuses[studentUid] = inside;
     }
 
-    return insideStatuses;
+    return {insideStatuses, studentsData};
   } else {
     return null;
   }
 };
+
 const handleAbsentNowPress = async () => {
-  const allStudentsInsideStatus = await checkAllStudentsInsideStatus();
+  const result = await checkAllStudentsInsideStatus();
+
+  if (!result) {
+    console.error('Error fetching student data.');
+    return;
+  }
+
+  const {insideStatuses: allStudentsInsideStatus, studentsData} = result;
   console.log('Inside statuses for all students:', allStudentsInsideStatus);
+
+  // Filter students with inside = false
+  const absentStudents = Object.keys(allStudentsInsideStatus)
+    .filter(studentUid => !allStudentsInsideStatus[studentUid])
+    .map(studentUid => ({
+      uid: studentUid,
+      Name: studentsData[studentUid].Name,
+      Parent: studentsData[studentUid].Parent,
+    }));
+
+  const absentPhoneNumbersAndNames = absentStudents.map(student => {
+    return {
+      name: student.Name,
+      phoneNumber: student.Parent,
+    };
+  });
+
+  console.log(absentPhoneNumbersAndNames);
+
+  const url = 'http://217.195.197.235:5000/send-message';
+
+  absentPhoneNumbersAndNames.forEach(async studentInfo => {
+    const body = {
+      wa_numbers: [studentInfo.phoneNumber],
+      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di . Point telah ditambahkan.`,
+    };
+
+    // Send a POST request with the absent student's phone number
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonResponse = await response.json();
+      console.log(jsonResponse);
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+  });
+
+
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
 };
+
 
 const resetStudentLocations = async () => {
   const db = getDatabase();
@@ -336,37 +392,37 @@ const resetStudentLocations = async () => {
         showsMyLocationButton={true}>
         {mapReady && (
           <>
-            {studentType === 'Crystal' || userType === 'Monitor' ? (
+            {studentType === 'Crystal' ||userType === 'Monitor' && absentType === 'dorm' ? (
               <CrystalCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             ) : null}
-            {studentType === 'Edel' || userType === 'Monitor' ? (
+            {studentType === 'Edel' || userType === 'Monitor' && absentType === 'dorm'? (
               <EdelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             ) : null}
-            {studentType === 'Genset' || userType === 'Monitor' ? (
+            {studentType === 'Genset' || userType === 'Monitor' && absentType === 'dorm' ? (
               <GensetCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             ) : null}
-            {studentType === 'Guest' || userType === 'Monitor' ? (
+            {studentType === 'Guest' || userType === 'Monitor' && absentType === 'dorm' ? (
               <GuestCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             ) : null}
-            {studentType === 'Jasmine' || userType === 'Monitor' ? (
+            {studentType === 'Jasmine' || userType === 'Monitor' && absentType === 'dorm'? (
               <JasmineCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             ) : null}
-            {studentType === 'Annex' || userType === 'Monitor' ? (
+            {studentType === 'Annex' || userType === 'Monitor' && absentType === 'dorm' ? (
               <AnnexCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
@@ -380,7 +436,7 @@ const resetStudentLocations = async () => {
               'Jasmine',
               'Annex',
             ].includes(studentType) ||
-              userType === 'Monitor') && (
+              userType === 'Monitor' && absentType === 'chapel') && (
               <ChapelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
@@ -433,17 +489,7 @@ const resetStudentLocations = async () => {
           <Image source={ZoomIn} style={{width: 20, height: 20}} />
         </View>
       </Pressable> */}
-      <Pressable
-        style={({pressed}) => [
-          styles.focusMonitorZO,
-          pressed ? styles.buttonPressed : styles.buttonNotPressed,
-          {opacity: pressed ? 0.5 : 1},
-        ]}
-        onPress={focusOnMonitor}>
-        <View>
-          <Image source={ZoomOut} style={{width: 20, height: 20}} />
-        </View>
-      </Pressable>
+
       <Pressable
         style={({pressed}) => [
           styles.backBtn,
@@ -453,7 +499,19 @@ const resetStudentLocations = async () => {
         onPress={handleButtonPress}>
         <Text style={styles.buttonText}>Back</Text>
       </Pressable>
-
+      {userType === 'Monitor' && (
+        <Pressable
+          style={({pressed}) => [
+            styles.focusMonitorZO,
+            pressed ? styles.buttonPressed : styles.buttonNotPressed,
+            {opacity: pressed ? 0.5 : 1},
+          ]}
+          onPress={focusOnMonitor}>
+          <View>
+            <Image source={ZoomOut} style={{width: 20, height: 20}} />
+          </View>
+        </Pressable>
+      )}
       {userType === 'Monitor' && (
         <Pressable
           style={({pressed}) => [

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "274263141809",
+    "firebase_url": "https://udorm-e19e4-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "udorm-e19e4",
+    "storage_bucket": "udorm-e19e4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274263141809:android:83926f7542376416726190",
+        "android_client_info": {
+          "package_name": "com.udorm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "274263141809-ep1ular686sj16ckiv9rti32e0kkk9ss.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr8JDATaIqjubWruEJ-AEXE6ewSLTw2Lo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "274263141809-abg2jq4jttb35a02q6l9ui27rfoikbtb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

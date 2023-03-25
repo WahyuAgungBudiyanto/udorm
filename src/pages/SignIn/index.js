@@ -3,18 +3,15 @@ import {React, useState} from 'react';
 import {Header, Button, Gap, Label, TextInput, CustomTextInput} from '../../components';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
-import { Eye } from '../../assets/icons';
 import {Picker} from '@react-native-picker/picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {getDatabase, ref as r, get} from 'firebase/database';
 
-
 const checkUserType = async uid => {
   const db = getDatabase();
 
-   
   // Check if the user exists in the Monitor section
   const monitorRef = r(db, `Monitor/${uid}`);
   const monitorSnapshot = await get(monitorRef);
@@ -35,59 +32,43 @@ const checkUserType = async uid => {
 const SignIn = ({navigation}) => {
   const [selectedValue, setSelectedValue] = useState('Student');
   const [isChecked, setIsChecked] = useState(false);
-  
-  const handleCheck = () => {
-    setIsChecked(!isChecked);
-  };
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const handleCheck = () => {setIsChecked(!isChecked);};
 
-const Login = async () => {
- const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
+  const Login = async () => {
+    const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
 
-  signInWithEmailAndPassword(authentication, emails, password)
-    .then(async re => {
-      console.log(re);
-      const uid = re.user.uid;
+    signInWithEmailAndPassword(authentication, emails, password)
+      .then(async re => {
+        console.log(re);
+        const uid = re.user.uid;
+        const userType = await checkUserType(uid);
 
-      const userType = await checkUserType(uid);
+        if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
+          setIsSignedIn(true);
 
-      if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
-        setIsSignedIn(true);
-        Alert.alert('Success!', 'You are now logged in');
+          // Show the success alert
+          Alert.alert('Success!', 'You are now logged in');
 
-        // Navigate to the appropriate home screen based on the user type
-        setTimeout(() => {
-          if (userType === 'Monitor') {
-            navigation.navigate('HomeMonitor');
-          } else if (userType === 'Student') {
-            navigation.navigate('HomeStudent');
-          }
-        }, 1000); // Add a 1-second (1000 milliseconds) delay before navigating
-      } else {
-        Alert.alert('Error!', 'Invalid user type');
-      }
-    })
-    .catch(error => {
-      if (error.code === 'auth/user-not-found') {
-        console.log('User not found.');
-        Alert.alert('Alert!', 'User not found');
-      } else if (error.code === 'auth/wrong-password') {
-        console.log('Incorrect password.');
-        Alert.alert('Alert!', 'Incorrect Password');
-      } else if (error.code === 'auth/invalid-email') {
-        console.log('Please fill it');
-        Alert.alert('Alert!', 'Email or Password is empty');
-      } else if (error.code === 'auth/internal-error') {
-        console.log('Please fill it');
-        Alert.alert('Alert!', 'Email or Password is empty');
-      } else {
+          // Delay the navigation to the appropriate home screen
+          setTimeout(() => {
+            if (userType === 'Monitor') {
+              navigation.navigate('HomeMonitor');
+            } else if (userType === 'Student') {
+              navigation.navigate('HomeStudent');
+            }
+          }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
+        } else {
+          Alert.alert('Error!', 'Invalid user type');
+        }
+      })
+      .catch(error => {
+        Alert.alert('Alert!', error.message);
         console.log('Error:', error.message);
-      }
-    });
-};
-
+      });
+  };
 
   return (
     <View style={styles.main}>

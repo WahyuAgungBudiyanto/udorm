@@ -3,6 +3,7 @@ import {StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert} from 'reac
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
 import {Picker} from '@react-native-picker/picker';
+import RadioGroup from 'react-native-radio-buttons-group';
 import {Header, Button, TextInput, Gap, Label, CustomTextInput} from '../../components';
 
 import authentication,{db} from '../../config/firebase-config'
@@ -51,14 +52,14 @@ const SignUp = ({navigation}) => {
         Alert.alert('Success!', 'You are now registered');
         setTimeout(() => {
           navigation.navigate('SignIn');
-        }, 1000); // Add a 2-second (2000 milliseconds) delay before navigating
+        }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
       })
       .catch(error => {
         Alert.alert('Alert!', error.message);
-          console.log('Error:', error.message);
-        
+        console.log('Error:', error.message);
       });
   };
+  
 
   return (
     <ScrollView style={styles.container}>

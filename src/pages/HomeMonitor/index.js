@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
+import {Alert} from 'react-native';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
 
 import authentication, {db} from '../../config/firebase-config';
@@ -75,17 +76,45 @@ const resetStudentLocations = async () => {
 
 
 
-
-
-
-
-
-
   const mapsGo = () => {
-    //resetStudentLocations();
-    navigation.navigate('MainLoc');
-    
+    resetStudentLocations();
+
+    Alert.alert(
+      'Select Absent Type',
+      'Please choose the absent type:',
+      [
+        {
+          text: 'Dorm',
+          onPress: () => {
+            updateAbsentType('dorm');
+            navigation.navigate('MainLoc', {absentType: 'dorm'});
+          },
+        },
+        {
+          text: 'Chapel',
+          onPress: () => {
+            updateAbsentType('chapel');
+            navigation.navigate('MainLoc', {absentType: 'chapel'});
+          },
+        },
+      ],
+      {cancelable: false},
+    );
   };
+
+  const updateAbsentType = async absentType => {
+    const db = getDatabase();
+    const userType = await checkUserType(uid);
+
+    if (userType === 'Monitor') {
+      update(r(db, `Monitor/${uid}`), {
+        absentType: absentType,
+      });
+    } else {
+      console.log('User is not a Monitor');
+    }
+  };
+
   
 
   return (
