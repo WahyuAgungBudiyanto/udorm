@@ -518,7 +518,7 @@ const resetStudentLocations = async () => {
           <View>
             <Image source={ZoomOut} style={{width: 20, height: 20}} />
           </View>
-        </Pressable>
+        </Pressable>  
       )}
       {userType === 'Monitor' && (
         <Pressable

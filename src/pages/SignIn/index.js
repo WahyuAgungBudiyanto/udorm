@@ -7,6 +7,7 @@ import {Picker} from '@react-native-picker/picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
+import auth from '@react-native-firebase/auth';
 import {getDatabase, ref as r, get} from 'firebase/database';
 
 const checkUserType = async uid => {
@@ -39,8 +40,8 @@ const SignIn = ({navigation}) => {
 
   const Login = async () => {
     const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
-
-    signInWithEmailAndPassword(authentication, emails, password)
+    
+    auth().signInWithEmailAndPassword(emails, password)
       .then(async re => {
         console.log(re);
         const uid = re.user.uid;

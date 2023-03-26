@@ -71,22 +71,19 @@ const Router = () => {
     <Stack.Navigator
       initialRouteName="SignIn"
       screenOptions={{headerShown: false}}>
+      <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen name="Profile" component={Profile} />
       {user?.userType === 'Student' && (
         <>
           <Stack.Screen name="HomeStudent" component={HomeStudent} />
           <Stack.Screen name="MainLoc" component={MainLoc} />
-          <Stack.Screen name="SignIn" component={SignIn} />
-          <Stack.Screen name="SignUp" component={SignUp} />
-          <Stack.Screen name="Profile" component={Profile} />
         </>
       )}
       {user?.userType === 'Monitor' && (
         <>
           <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
           <Stack.Screen name="MainLoc" component={MainLoc} />
-          <Stack.Screen name="SignIn" component={SignIn} />
-          <Stack.Screen name="SignUp" component={SignUp} />
-          <Stack.Screen name="Profile" component={Profile} />
         </>
       )}
     </Stack.Navigator>
