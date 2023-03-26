@@ -3,9 +3,8 @@ import {StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert} from 'reac
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
 import {Picker} from '@react-native-picker/picker';
-import RadioGroup from 'react-native-radio-buttons-group';
+import RadioButtonsGroup from 'react-native-radio-buttons-group';
 import {Header, Button, TextInput, Gap, Label, CustomTextInput} from '../../components';
-
 import authentication,{db} from '../../config/firebase-config'
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {ref as r, getDatabase, child, get, update} from 'firebase/database';
@@ -20,7 +19,9 @@ const SignUp = ({navigation}) => {
   const [FullName, setFullName] = useState('');
   const [NumberParent, setNumberParent] = useState('');
   const [Gender, setGender] = useState('');
-  const [Faculty, setFaculty] = useState('');
+  const [Faculty, setFaculty] = useState('Ilmu Komputer');
+
+
 
   const handleCheck = () => {
     setIsChecked(!isChecked);
@@ -159,6 +160,7 @@ const SignUp = ({navigation}) => {
         onChangeText={text => setNumberParent(text)}
       />
       <Gap height={12} />
+
       <TextInput
         title="Gender"
         placeholder="Male/Female"
@@ -166,16 +168,64 @@ const SignUp = ({navigation}) => {
         onChangeText={text => setGender(text)}
       />
       <Gap height={12} />
-      <TextInput
+      <Label
         title="Faculty"
-        placeholder="Ilmu Komputer"
-        value={Faculty}
-        onChangeText={text => setFaculty(text)}
+        textSize={16}
+        textFam="Poppins-Regular"
+        tALight="left"
+        mL={50}
       />
+      <Gap height={8} />
+      <View style={styles.pickerContainer}>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            style={[styles.picker, {flex: 1}]}
+            selectedValue={Faculty}
+            onValueChange={(itemValue, itemIndex) => setFaculty(itemValue)}
+            dropdownIconColor="#7BC9DE">
+            <Picker.Item
+              label="Ilmu Komputer"
+              value="Ilmu Komputer"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Fakultas Filsafat"
+              value="Fakultas Filsafat"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Fakultas Keguruan dan Ilmu Pendidikan"
+              value="Fakultas Keguruan dan Ilmu Pendidikan"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Fakultas Ekonomi dan Bisnis"
+              value="Fakultas Ekonomi dan Bisnis"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Fakultas Pertanian"
+              value="Fakultas Pertanian"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Fakultas Keperawatan"
+              value="Fakultas Keperawatan"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Akademi Sekretari Manajemen Indonesia Klabat"
+              value="Akademi Sekretari Manajemen Indonesia Klabat"
+              style={styles.pickerItem}
+            />
+          </Picker>
+        </View>
+      </View>
+
       <Gap height={20} />
 
       <Button
-        title="             Register"
+        title="Register"
         color="#7BC9DE"
         textColor="white"
         onPress={Register}
@@ -226,12 +276,13 @@ const styles = StyleSheet.create({
   pickerWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   picker: {
-    color: 'black',
+    color: 'black', // set text color to black
   },
   pickerItem: {
-    color: 'white',
+    color: 'black', // set dropdown item text color to black
+    backgroundColor: 'white', // set dropdown item background color to white
   },
 });

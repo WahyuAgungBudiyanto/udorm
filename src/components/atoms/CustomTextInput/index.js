@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     lineHeight: 15,
     textAlignVertical: 'center',
+    fontSize: 8,
   },
 });
 

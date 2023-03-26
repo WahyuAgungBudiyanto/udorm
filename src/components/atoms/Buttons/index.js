@@ -26,8 +26,6 @@ const styles = StyleSheet.create({
     backgroundColor: color,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: 10,
-    paddingHorizontal: 50,
     marginHorizontal: 50,
     borderRadius: 10,
   }),
@@ -35,5 +33,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Poppins-Medium',
     color: textColor,
+    textAlign: 'center',
   }),
 });

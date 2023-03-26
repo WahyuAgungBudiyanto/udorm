@@ -23,17 +23,18 @@ const MainLoc = ({navigation}) => {
   }
     console.log('Button pressed');
   };  
+
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
   const [mapReady, setMapReady] = useState(false);
   const uid = authentication.currentUser.uid;
   const [inside, setInside] = useState(false);
   const [studentType, setStudentType] = useState(null);
+  const [absentType, setAbsentType] = useState(null);
   const [userType, setUserType] = useState(null);
   const [studentLocations, setStudentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
-
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -72,6 +73,32 @@ const MainLoc = ({navigation}) => {
       },
     );
   };
+  const fetchAbsentType = () => {
+    const MonitorTypeRef = r(db, `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`);
+    onValue(
+      MonitorTypeRef,
+      snapshot => {
+        if (snapshot.exists()) {
+          setAbsentType(snapshot.val());
+        } else {
+          //console.log('No data available');
+        }
+      },
+      error => {
+        console.error(error);
+      },
+    );
+  };
+
+  useEffect(() => {
+    fetchAbsentType(); // Call the function to set absentType state
+  }, []);
+
+  // Log the value of absentType when it is updated
+  useEffect(() => {
+    //console.log(absentType);
+  }, [absentType]);
+
 
   const updateUserLocation = (location, inside) => {
     update(r(db, `Student/${uid}/Location`), {
@@ -105,10 +132,12 @@ const getCurrentLocation = inside => {
       (async () => {
         const type = await checkUserType(uid);
         setUserType(type);
+        
      
     })();
 
       fetchStudentType();
+      
 
       if (userType !== 'Monitor') {
         const locationUpdateInterval = setInterval(() => {
@@ -192,17 +221,17 @@ const getCurrentLocation = inside => {
   }, []);
 
   useEffect(() => {
-  if (userType === 'Monitor') {
+  
     setMonitorCoordinate({
       latitude: 1.4174552420479594, // Your fixed latitude value,
       longitude: 124.98335068219275, // Your fixed longitude value,
     });
-  }
+ 
 }, [userType]);
 
 const focusOnMonitor = () => {
   // Return immediately if the user is not a Monitor
-  if (userType !== 'Monitor') {
+ 
     if (mapRef && initialRegion) {
       mapRef.animateToRegion(
         {
@@ -213,8 +242,7 @@ const focusOnMonitor = () => {
         },
         2000,
       );
-    }
-    return;
+   
   }
 
   if (mapRef && monitorCoordinate) {
@@ -378,6 +406,8 @@ const resetStudentLocations = async () => {
   }
 };
 
+
+
   return (
     <View style={{flex: 1}}>
       <MapView
@@ -392,69 +422,63 @@ const resetStudentLocations = async () => {
         showsMyLocationButton={true}>
         {mapReady && (
           <>
-            {studentType === 'Crystal' ||userType === 'Monitor' && absentType === 'dorm' ? (
-              <CrystalCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {studentType === 'Edel' || userType === 'Monitor' && absentType === 'dorm'? (
-              <EdelCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {studentType === 'Genset' || userType === 'Monitor' && absentType === 'dorm' ? (
-              <GensetCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {studentType === 'Guest' || userType === 'Monitor' && absentType === 'dorm' ? (
-              <GuestCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {studentType === 'Jasmine' || userType === 'Monitor' && absentType === 'dorm'? (
-              <JasmineCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {studentType === 'Annex' || userType === 'Monitor' && absentType === 'dorm' ? (
-              <AnnexCoordinate
-                userLocation={initialRegion}
-                onInsideChange={setInside}
-              />
-            ) : null}
-            {([
-              'Crystal',
-              'Edel',
-              'Genset',
-              'Guest',
-              'Jasmine',
-              'Annex',
-            ].includes(studentType) ||
-              userType === 'Monitor' && absentType === 'chapel') && (
+            {absentType === 'dorm' &&
+              (studentType === 'Crystal' || userType === 'Monitor') && (
+                <CrystalCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {absentType === 'dorm' &&
+              (studentType === 'Edel' || userType === 'Monitor') && (
+                <EdelCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {absentType === 'dorm' &&
+              (studentType === 'Genset' || userType === 'Monitor') && (
+                <GensetCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {absentType === 'dorm' &&
+              (studentType === 'Guest' || userType === 'Monitor') && (
+                <GuestCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {absentType === 'dorm' &&
+              (studentType === 'Jasmine' || userType === 'Monitor') && (
+                <GuestCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {absentType === 'dorm' &&
+              (studentType === 'Annex' || userType === 'Monitor') && (
+                <AnnexCoordinate
+                  userLocation={initialRegion}
+                  onInsideChange={setInside}
+                />
+              )}
+            {((absentType === 'chapel' &&
+              [
+                'Crystal',
+                'Edel',
+                'Genset',
+                'Guest',
+                'Jasmine',
+                'Annex',
+              ].includes(studentType)) ||
+              (absentType === 'chapel' && userType === 'Monitor')) && (
               <ChapelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
               />
             )}
-            {/*{userType === 'Monitor' && monitorCoordinate && (
-              <Marker
-                key={'monitor'}
-                coordinate={monitorCoordinate}
-                title="Monitor">
-                <View>
-                   <Image
-                    source={require('../../../assets/images/monitor_icon.png')}
-                    style={{width: 32, height: 32}}
-                  /> 
-                </View>
-              </Marker>
-            )}*/}
 
             {userType === 'Monitor' &&
               studentLocations.map(location => (
@@ -469,27 +493,11 @@ const resetStudentLocations = async () => {
                     style={{width: 15, height: 15}}
                     source={require('../../../assets/images/face.png')}
                   />
-
-                  {/* <View>
-                      <Image source={Face} style={{width: 32, height: 32}} />
-                    </View> */}
                 </Marker>
               ))}
           </>
         )}
       </MapView>
-      {/* <Pressable
-        style={({pressed}) => [
-          styles.focusMonitorZI,
-          pressed ? styles.buttonPressed : styles.buttonNotPressed,
-          {opacity: pressed ? 0.5 : 1},
-        ]}
-        onPress={focusOnMonitor}>
-        <View>
-          <Image source={ZoomIn} style={{width: 20, height: 20}} />
-        </View>
-      </Pressable> */}
-
       <Pressable
         style={({pressed}) => [
           styles.backBtn,
@@ -499,7 +507,7 @@ const resetStudentLocations = async () => {
         onPress={handleButtonPress}>
         <Text style={styles.buttonText}>Back</Text>
       </Pressable>
-      {userType === 'Monitor' && (
+      {(userType === 'Monitor' || userType === 'Student') && (
         <Pressable
           style={({pressed}) => [
             styles.focusMonitorZO,
@@ -578,7 +586,7 @@ const styles = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     bottom: 20,
-    left: 170,
+    marginHorizontal: 130,
     paddingHorizontal: 20,
     paddingVertical: 5,
     borderRadius: 5,
@@ -586,7 +594,7 @@ const styles = StyleSheet.create({
 
   floatingButton: {
     position: 'absolute',
-    bottom: 60,
+    bottom: 80,
     alignSelf: 'center',
     paddingHorizontal: 20,
     paddingVertical: 10,

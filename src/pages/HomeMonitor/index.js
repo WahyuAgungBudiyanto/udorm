@@ -98,7 +98,7 @@ const resetStudentLocations = async () => {
           },
         },
       ],
-      {cancelable: false},
+      {cancelable: true},
     );
   };
 

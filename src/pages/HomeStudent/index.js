@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, TouchableOpacity, ScrollView} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, ScrollView, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
-
+import { BackHome } from '../../assets/images';
 import authentication from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
 
@@ -32,13 +32,18 @@ const HomeStudent = ({navigation}) => {
     }
   };
   const mapsGo = () => {
-   
     navigation.navigate('MainLoc');
     
+  };
+  const ProfileGo = () => {
+    navigation.navigate('Profile');
   };
 
   return (
     <ScrollView style={styles.container}>
+      
+        {/* <Image source={BackHome} style={{width: 300, height: 100}} /> */}
+     
       <Label title="HomeStudent"></Label>
       <Button
         title="SignOut"
@@ -48,6 +53,13 @@ const HomeStudent = ({navigation}) => {
       />
       <Gap height={8} />
       <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo} />
+      <Gap height={8} />
+      <Button
+        title="Profile"
+        color="#7BC9DE"
+        textColor="white"
+        onPress={ProfileGo}
+      />
     </ScrollView>
   );
 };

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen} from '../pages';
+import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, Profile} from '../pages';
 import {MainLoc} from '../pages/Maps';
 import {getAuth, onAuthStateChanged} from 'firebase/auth';
 import {getDatabase, ref as r, get} from 'firebase/database';
@@ -75,18 +75,18 @@ const Router = () => {
         <>
           <Stack.Screen name="HomeStudent" component={HomeStudent} />
           <Stack.Screen name="MainLoc" component={MainLoc} />
+          <Stack.Screen name="SignIn" component={SignIn} />
+          <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="Profile" component={Profile} />
         </>
       )}
       {user?.userType === 'Monitor' && (
         <>
           <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
           <Stack.Screen name="MainLoc" component={MainLoc} />
-        </>
-      )}
-      {!user && (
-        <>
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="Profile" component={Profile} />
         </>
       )}
     </Stack.Navigator>

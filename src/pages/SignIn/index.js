@@ -70,6 +70,8 @@ const SignIn = ({navigation}) => {
       });
   };
 
+ 
+
   return (
     <View style={styles.main}>
       <Header
@@ -93,24 +95,24 @@ const SignIn = ({navigation}) => {
       <Gap height={8} />
       <View style={styles.pickerContainer}>
         <View style={styles.pickerWrapper}>
-            <Picker
-              style={[styles.picker, {flex: 1}]}
-              selectedValue={selectedValue}
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedValue(itemValue)
-              }
-              dropdownIconColor="#7BC9DE">
-              <Picker.Item
-                label="Student"
-                value="Student"
-                style={styles.pickerItem}
-              />
-              <Picker.Item
-                label="Monitor"
-                value="monitor"
-                style={styles.pickerItem}
-              />
-            </Picker>
+          <Picker
+            style={[styles.picker, {flex: 1}]}
+            selectedValue={selectedValue}
+            onValueChange={(itemValue, itemIndex) =>
+              setSelectedValue(itemValue)
+            }
+            dropdownIconColor="#7BC9DE">
+            <Picker.Item
+              label="Student"
+              value="Student"
+              style={styles.pickerItem}
+            />
+            <Picker.Item
+              label="Monitor"
+              value="monitor"
+              style={styles.pickerItem}
+            />
+          </Picker>
         </View>
       </View>
       <Gap height={12} />
@@ -150,7 +152,7 @@ const SignIn = ({navigation}) => {
       </View>
       <Gap height={12} />
       <Button
-        title="             Login"
+        title="Login"
         color="#7BC9DE"
         textColor="white"
         onPress={Login}
@@ -166,6 +168,7 @@ const SignIn = ({navigation}) => {
 const styles = StyleSheet.create({
   main: {
     backgroundColor: 'white',
+    flex: 1,
   },
   logo: {
     width: 100, // Adjust the width as needed
@@ -203,10 +206,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   picker: {
-    color: 'black',
+    color: 'black', // set text color to black
   },
   pickerItem: {
-    color: 'white',
+    color: 'black', // set dropdown item text color to black
+    backgroundColor: 'white', // set dropdown item background color to white
   },
 });
 
