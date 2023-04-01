@@ -354,6 +354,39 @@ const handleAbsentNowPress = async () => {
 
   const url = 'http://217.195.197.235:5000/send-message';
 
+  // Create an array of objects containing the absent student's name, and current datetime
+  const absentData = absentStudents.map(student => {
+    return {
+      DATETIME: new Date().toISOString(), // Get the current datetime in ISO format
+      NAME: student.Name,
+      ABSENTTYPE: absentType,
+    };
+  });
+
+  console.log(absentData);
+
+  // Send data to SheetDB using a POST request for each absent student
+  for (const data of absentData) {
+    try {
+      const response = await fetch('https://sheetdb.io/api/v1/kod9l4cda653q', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonResponse = await response.json();
+      console.log(jsonResponse);
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+  }
+
   absentPhoneNumbersAndNames.forEach(async studentInfo => {
     const body = {
       wa_numbers: [studentInfo.phoneNumber],
@@ -380,7 +413,6 @@ const handleAbsentNowPress = async () => {
       console.error('There was a problem with the fetch operation:', error);
     }
   });
-
 
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
 };
@@ -452,7 +484,7 @@ const resetStudentLocations = async () => {
               )}
             {absentType === 'dorm' &&
               (studentType === 'Jasmine' || userType === 'Monitor') && (
-                <GuestCoordinate
+                <JasmineCoordinate
                   userLocation={initialRegion}
                   onInsideChange={setInside}
                 />
@@ -518,7 +550,7 @@ const resetStudentLocations = async () => {
           <View>
             <Image source={ZoomOut} style={{width: 20, height: 20}} />
           </View>
-        </Pressable>  
+        </Pressable>
       )}
       {userType === 'Monitor' && (
         <Pressable
@@ -586,8 +618,8 @@ const styles = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     bottom: 20,
-    marginHorizontal: 130,
-    paddingHorizontal: 20,
+    marginHorizontal: 170,
+    paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 5,
   },
