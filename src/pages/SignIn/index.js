@@ -8,6 +8,7 @@ import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {getDatabase, ref as r, get} from 'firebase/database';
+import {storeData} from '../../utils/LocalStorage';
 
 const checkUserType = async uid => {
   const db = getDatabase();
@@ -44,7 +45,9 @@ const SignIn = ({navigation}) => {
       .then(async re => {
         console.log(re);
         const uid = re.user.uid;
+        const email = re.user.email;
         const userType = await checkUserType(uid);
+        storeData('userSession', {uid, email, password, userType});
 
         if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
           setIsSignedIn(true);

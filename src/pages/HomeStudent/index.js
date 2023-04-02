@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView, Image} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
@@ -6,8 +6,17 @@ import {Header, Button, TextInput, Gap, Label} from '../../components';
 import { BackHome } from '../../assets/images';
 import authentication from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
+import {getData, removeSession} from '../../utils/LocalStorage';
 
 const HomeStudent = ({navigation}) => {
+  const [uid, setUid] = useState();
+
+  useEffect(() => {
+    getData('userSession').then(data => {
+      setUid(data.uid);
+      console.log('data di user session monitor:', data);
+    });
+  }, []);
   const [isSignedIn, setIsSignedIn] = useState(false);
 
   const SignOutUser = () => {
@@ -24,7 +33,8 @@ const HomeStudent = ({navigation}) => {
 
   const handleSignOutNavigate = () => {
     if (isSignedIn == false) {
-      console.log("Signed Out Success")
+      removeSession('userSession');
+      //console.log("Signed Out Success")
       navigation.navigate('SignIn');
     } else {
       console.log('Error');
