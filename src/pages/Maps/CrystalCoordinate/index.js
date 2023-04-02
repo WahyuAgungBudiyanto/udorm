@@ -1,7 +1,40 @@
 import {Polygon} from 'react-native-maps';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
+import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
+import authentication, {db} from '../../../config/firebase-config';
+
+const checkUserType = async uid => {
+  const db = getDatabase();
+
+  // Check if the user exists in the Monitor section
+  const monitorRef = r(db, `Monitor/${uid}`);
+  const monitorSnapshot = await get(monitorRef);
+  if (monitorSnapshot.exists()) {
+    return 'Monitor';
+  }
+
+  // Check if the user exists in the Student section
+  const studentRef = r(db, `Student/${uid}`);
+  const studentSnapshot = await get(studentRef);
+  if (studentSnapshot.exists()) {
+    return 'Student';
+  }
+
+  return null;
+};
 
 const CrystalCoordinate = ({userLocation, onInsideChange}) => {
+  const [userType, setUserType] = useState(null);
+
+  useEffect(() => {
+    const fetchUserType = async () => {
+      const uid = authentication.currentUser.uid;
+      const type = await checkUserType();
+      setUserType(type);
+    };
+    fetchUserType();
+  }, []);
+
   const polygonCoords = [
     {latitude: 1.4170968843899396, longitude: 124.9833921186385},
     {latitude: 1.4170888402025656, longitude: 124.9832667253487},
@@ -59,7 +92,9 @@ const CrystalCoordinate = ({userLocation, onInsideChange}) => {
       key={'CrystalCoordinate'}
       coordinates={polygonCoords}
       fillColor={
-        isPointInPolygon(userLocation, polygonCoords)
+        userType === 'Monitor'
+          ? 'transparent'
+          : isPointInPolygon(userLocation, polygonCoords)
           ? 'rgb(102, 255, 102)'
           : 'rgba(255,0,0,0.5)'
       }
