@@ -12,6 +12,7 @@ import AnnexCoordinate from '../AnnexCoordinate';
 import ChapelCoordinate from '../ChapelCoordinate';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
 import authentication, {db} from '../../../config/firebase-config';
+import { getData } from '../../../utils/LocalStorage';
 
 const MainLoc = ({navigation}) => {
   const handleButtonPress = () => {
@@ -27,7 +28,9 @@ const MainLoc = ({navigation}) => {
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
   const [mapReady, setMapReady] = useState(false);
-  const uid = authentication.currentUser.uid;
+
+  const [uid, setUid] = useState()
+  // const uid = authentication.currentUser.uid;
   const [inside, setInside] = useState(false);
   const [studentType, setStudentType] = useState(null);
   const [absentType, setAbsentType] = useState(null);
@@ -91,13 +94,16 @@ const MainLoc = ({navigation}) => {
   };
 
   useEffect(() => {
+    getData('userSession').then(data => {
+      setUid(data.uid)
+    });
     fetchAbsentType(); // Call the function to set absentType state
   }, []);
 
   // Log the value of absentType when it is updated
-  useEffect(() => {
-    //console.log(absentType);
-  }, [absentType]);
+  // useEffect(() => {
+  //   //console.log(absentType);
+  // }, [absentType]);
 
 
   const updateUserLocation = (location, inside) => {
