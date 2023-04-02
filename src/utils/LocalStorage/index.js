@@ -18,3 +18,13 @@ export const getData = async key => {
     console.error('Error storing data:', e);
   }
 };
+
+export const removeSession = async (key) => {
+  try {
+    await AsyncStorage.removeItem(key)
+  } catch(e) {
+    // remove error
+  }
+
+  console.log('Done.')
+}

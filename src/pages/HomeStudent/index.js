@@ -6,20 +6,17 @@ import {Header, Button, TextInput, Gap, Label} from '../../components';
 import { BackHome } from '../../assets/images';
 import authentication from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
+import { removeSession } from '../../utils/LocalStorage';
+import { BackHandler } from 'react-native';
 
 const HomeStudent = ({navigation}) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
+
   const SignOutUser = () => {
-      signOut(authentication)
-        .then(re => {
-          console.log(re);
-          setIsSignedIn(false);
-          handleSignOutNavigate();
-        })
-        .catch(error => {
-          console.log(error);
-        });
+   removeSession('userSession')
+  //  .then(()=>navigation.navigate('SignIn'))
+   .then(()=>BackHandler.exitApp())
   };
 
   const handleSignOutNavigate = () => {

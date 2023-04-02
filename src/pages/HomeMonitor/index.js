@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
@@ -8,22 +8,28 @@ import {Header, Button, TextInput, Gap, Label} from '../../components';
 import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
+import { getData, removeSession } from '../../utils/LocalStorage';
+import { BackHandler } from 'react-native';
 
 
 const HomeMonitor = ({navigation}) => {
+  const [uid, setUid] = useState()
+
+  useEffect(() => {
+    getData('userSession').then(data => {
+      setUid(data.uid)
+      console.log("data di user session monitor:",data);
+    });
+  }, [])
+  
   const [isSignedIn, setIsSignedIn] = useState(false);
-  const uid = authentication.currentUser.uid;
+  // const uid = authentication.currentUser.uid;
   const SignOutUser = () => {
-      signOut(authentication)
-        .then(re => {
-          console.log(re);
-          setIsSignedIn(false);
-          handleSignOutNavigate();
-        })
-        .catch(error => {
-          console.log(error);
-        });
-  };
+    removeSession('userSession')
+   //  .then(()=>navigation.navigate('SignIn'))
+    .then(()=>BackHandler.exitApp())
+   };
+
 
   const handleSignOutNavigate = () => {
     if (isSignedIn == false) {
