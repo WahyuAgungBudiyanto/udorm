@@ -6,6 +6,7 @@ import HomeMonitor from './HomeMonitor';
 import Maps from './Maps';
 import Background from './Background';
 import SplashScreen from './SplashScreen';
-import Profile from './Profile';
+import ProfilStudent from './ProfileStudent';
+import ProfileMonitor from './ProfileMonitor';
 
-export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background, SplashScreen, Profile};
+export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background, SplashScreen, ProfilStudent, ProfileMonitor};

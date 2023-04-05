@@ -1,10 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, View, TouchableOpacity, ScrollView} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, ScrollView, Modal, Text} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import {Alert} from 'react-native';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
-
 import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
@@ -12,6 +11,7 @@ import {getData, removeSession} from '../../utils/LocalStorage';
 
 const HomeMonitor = ({navigation}) => {
   const [uid, setUid] = useState();
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     getData('userSession').then(data => {
@@ -84,33 +84,6 @@ const resetStudentLocations = async () => {
 };
 
 
-
-  const mapsGo = () => {
-    resetStudentLocations();
-
-    Alert.alert(
-      'Select Absent Type',
-      'Please choose the absent type:',
-      [
-        {
-          text: 'Dorm',
-          onPress: () => {
-            updateAbsentType('dorm');
-            navigation.navigate('MainLoc', {absentType: 'dorm'});
-          },
-        },
-        {
-          text: 'Chapel',
-          onPress: () => {
-            updateAbsentType('chapel');
-            navigation.navigate('MainLoc', {absentType: 'chapel'});
-          },
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
   const updateAbsentType = async absentType => {
     const db = getDatabase();
     const userType = await checkUserType(uid);
@@ -124,7 +97,9 @@ const resetStudentLocations = async () => {
     }
   };
 
-  
+  const ProfileGo = () => {
+    navigation.navigate('ProfileMonitor');
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -136,7 +111,85 @@ const resetStudentLocations = async () => {
         onPress={SignOutUser}
       />
       <Gap height={8} />
-      <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo} />
+      {/* <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo} /> */}
+      <Button
+        title="Maps"
+        color="#7BC9DE"
+        textColor="white"
+        onPress={() => setShowModal(true)}
+      />
+      <Gap height={8} />
+      <Button
+        title="Profile"
+        color="#7BC9DE"
+        textColor="white"
+        onPress={ProfileGo}
+      />
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={() => {
+          setShowModal(false);
+        }}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Absent Type</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                updateAbsentType('dorm');
+                navigation.navigate('MainLoc', {absentType: 'dorm'});
+                resetStudentLocations();
+                setShowModal(false);
+              }}>
+              <Text style={styles.modalButtonText}>Dorm</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                updateAbsentType('Chapel-RabuMalam');
+                navigation.navigate('MainLoc', {
+                  absentType: 'Chapel-RabuMalam',
+                });
+                resetStudentLocations();
+                setShowModal(false);
+              }}>
+              <Text style={styles.modalButtonText}>Chapel-RabuMalam</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                updateAbsentType('Chapel-Vesper');
+                navigation.navigate('MainLoc', {absentType: 'Chapel-Vesper'});
+                resetStudentLocations();
+                setShowModal(false);
+              }}>
+              <Text style={styles.modalButtonText}>Chapel-Vesper</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                updateAbsentType('Chapel-Sabat');
+                navigation.navigate('MainLoc', {absentType: 'Chapel-Sabat'});
+                resetStudentLocations();
+                setShowModal(false);
+              }}>
+              <Text style={styles.modalButtonText}>Chapel-Sabat</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'red',
+                padding: 15,
+                borderRadius: 5,
+                marginVertical: 20,
+              }}
+              onPress={() => setShowModal(false)}>
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -145,7 +198,37 @@ export default HomeMonitor;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white', 
+    backgroundColor: 'white',
   },
-  
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black'
+  },
+  modalButton: {
+    backgroundColor: '#7BC9DE',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });

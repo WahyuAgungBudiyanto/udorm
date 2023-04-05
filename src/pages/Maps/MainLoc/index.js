@@ -1,4 +1,4 @@
-import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Animated  } from 'react-native';
+import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Linking  } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -15,7 +15,6 @@ import authentication, {db} from '../../../config/firebase-config';
 
 const MainLoc = ({navigation}) => {
   const handleButtonPress = () => {
-    // Add your logic here
   if (userType === 'Monitor') {
     navigation.navigate('HomeMonitor');
   } else if (userType === 'Student') {
@@ -35,6 +34,7 @@ const MainLoc = ({navigation}) => {
   const [studentLocations, setStudentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
+  const [sheetDBAPI, setSheetDBAPI] = useState('');
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -90,8 +90,27 @@ const MainLoc = ({navigation}) => {
     );
   };
 
+  const fetchSheetDBAPI = async () => {
+    try {
+      const sheetDBAPIRef = r(
+        db,
+        `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/sheetDBAPI`,
+      );
+      onValue(sheetDBAPIRef, snapshot => {
+        if (snapshot.exists()) {
+          setSheetDBAPI(snapshot.val());
+        } else {
+          console.log('No SheetDB API endpoint available');
+        }
+      });
+    } catch (error) {
+      console.error('There was a problem fetching the API endpoint:', error);
+    }
+  };
+
   useEffect(() => {
     fetchAbsentType(); // Call the function to set absentType state
+    fetchSheetDBAPI();
   }, []);
 
   // Log the value of absentType when it is updated
@@ -276,7 +295,7 @@ const onMapReady = () => {
   } else {
     mapRef.animateToRegion(initialRegion, 2000);
   }
-  focusOnMonitor(); // Add this line
+  focusOnMonitor();
 };
 
 
@@ -323,6 +342,26 @@ const checkAllStudentsInsideStatus = async () => {
   }
 };
 
+const formatWITDateTime = date => {
+  // Add 7 hours to the date (WIT is UTC+7)
+  date.setHours(date.getHours() + 7);
+
+  // Extract date components
+  const day = date.getDate();
+  const month = date.getMonth() + 1; // Months are 0-based
+  const year = date.getFullYear();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+
+  // Format date and time as 'dd/MM/yyyy HH:mm:ss'
+  return `${day.toString().padStart(2, '0')}/${month
+    .toString()
+    .padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes
+    .toString()
+    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
 const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
 
@@ -341,12 +380,15 @@ const handleAbsentNowPress = async () => {
       uid: studentUid,
       Name: studentsData[studentUid].Name,
       Parent: studentsData[studentUid].Parent,
+      Location: studentsData[studentUid].Location,
     }));
 
   const absentPhoneNumbersAndNames = absentStudents.map(student => {
     return {
       name: student.Name,
       phoneNumber: student.Parent,
+      latitude: student.Location.latitude,
+      longitude: student.Location.longitude,
     };
   });
 
@@ -354,43 +396,10 @@ const handleAbsentNowPress = async () => {
 
   const url = 'http://217.195.197.235:5000/send-message';
 
-  // Create an array of objects containing the absent student's name, and current datetime
-  const absentData = absentStudents.map(student => {
-    return {
-      DATETIME: new Date().toISOString(), // Get the current datetime in ISO format
-      NAME: student.Name,
-      ABSENTTYPE: absentType,
-    };
-  });
-
-  console.log(absentData);
-
-  // Send data to SheetDB using a POST request for each absent student
-  for (const data of absentData) {
-    try {
-      const response = await fetch('https://sheetdb.io/api/v1/kod9l4cda653q', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const jsonResponse = await response.json();
-      console.log(jsonResponse);
-    } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
-    }
-  }
-
   absentPhoneNumbersAndNames.forEach(async studentInfo => {
     const body = {
       wa_numbers: [studentInfo.phoneNumber],
-      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di . Point telah ditambahkan.`,
+      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di ${absentType}. Point telah ditambahkan. `,
     };
 
     // Send a POST request with the absent student's phone number
@@ -414,8 +423,46 @@ const handleAbsentNowPress = async () => {
     }
   });
 
+  // Create an array of objects containing the absent student's name, and current datetime
+  const absentData = absentStudents.map(student => {
+    return {
+      DATETIME: formatWITDateTime(new Date()),
+      NAME: student.Name,
+      ABSENTTYPE: absentType,
+    };
+  });
+
+  console.log(absentData);
+
+
+  // Send data to SheetDB using a POST request for each absent student
+  for (const data of absentData) {
+    try {
+      const response = await fetch(sheetDBAPI, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonResponse = await response.json();
+      console.log(jsonResponse);
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+  }
+
+  
+
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
 };
+
+
 
 
 const resetStudentLocations = async () => {
@@ -496,7 +543,7 @@ const resetStudentLocations = async () => {
                   onInsideChange={setInside}
                 />
               )}
-            {((absentType === 'chapel' &&
+            {((absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' &&
               [
                 'Crystal',
                 'Edel',
@@ -505,7 +552,7 @@ const resetStudentLocations = async () => {
                 'Jasmine',
                 'Annex',
               ].includes(studentType)) ||
-              (absentType === 'chapel' && userType === 'Monitor')) && (
+              (absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' && userType === 'Monitor')) && (
               <ChapelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}

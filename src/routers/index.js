@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, Profile} from '../pages';
+import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, ProfilStudent, ProfileMonitor} from '../pages';
 import {MainLoc} from '../pages/Maps';
 import {storeData, getData} from '../utils/LocalStorage';
 
@@ -33,31 +33,28 @@ const Router = () => {
     <Stack.Navigator
       initialRouteName="SignIn"
       screenOptions={{headerShown: false}}>
-      {
-        !user &&(
-          <>
+      {user == undefined && (
+        <>
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
-          </>
-        )
-      }
-      {
-        user == undefined || user.userType == 'Student' ?
-        <Stack.Screen name="HomeStudent" component={HomeStudent} />
-        :
-        null
-      }
-      {
-        user == undefined || user.userType  == 'Monitor'?
-        <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
-        : null
-      }
-      <Stack.Screen name="Profile" component={Profile} />
+        </>
+      )}
+      {user == undefined || user.userType == 'Student' ? (
+        <>
+          <Stack.Screen name="HomeStudent" component={HomeStudent} />
+          <Stack.Screen name="ProfilStudent" component={ProfilStudent} />
+        </>
+      ) : null}
+      {user == undefined || user.userType == 'Monitor' ? (
+        <>
+          <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
+          <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
+        </>
+      ) : null}
+
       <Stack.Screen name="MainLoc" component={MainLoc} />
     </Stack.Navigator>
-
- 
-    );
+  );
 };
 
 export default Router;
