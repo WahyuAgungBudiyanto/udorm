@@ -6,7 +6,7 @@ import {storeData, getData} from '../utils/LocalStorage';
 
 const Stack = createNativeStackNavigator();
 
-const Router = () => {
+const Router = ({tokenpn}) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState();
 
@@ -35,7 +35,11 @@ const Router = () => {
       screenOptions={{headerShown: false}}>
       {user == undefined && (
         <>
-          <Stack.Screen name="SignIn" component={SignIn} />
+          {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
+          <Stack.Screen name="SignIn">
+          {props => <SignIn {...props} tokenpn={tokenpn} />}
+        </Stack.Screen>
+
           <Stack.Screen name="SignUp" component={SignUp} />
         </>
       )}

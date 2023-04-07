@@ -7,7 +7,7 @@ import {Picker} from '@react-native-picker/picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
-import {getDatabase, ref as r, get} from 'firebase/database';
+import {getDatabase, ref as r, get, update, set} from 'firebase/database';
 import {storeData} from '../../utils/LocalStorage';
 
 const checkUserType = async uid => {
@@ -30,13 +30,27 @@ const checkUserType = async uid => {
   return null;
 };
 
-const SignIn = ({navigation}) => {
+const SignIn = ({navigation, tokenpn}) => {
   const [selectedValue, setSelectedValue] = useState('Student');
   const [isChecked, setIsChecked] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const handleCheck = () => {setIsChecked(!isChecked);};
+  
+  const db = getDatabase();
+  
+  function postToken(uid) {
+    const studentRef = r(db, `Student/${uid}/tokenpn`);
+    set(studentRef, tokenpn)
+      .then(() => {
+        console.log("Token updated successfully!");
+      })
+      .catch((error) => {
+        console.error("Error updating token: ", error);
+      });
+  }
+  
 
   const Login = async () => {
     const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
@@ -51,7 +65,7 @@ const SignIn = ({navigation}) => {
 
         if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
           setIsSignedIn(true);
-
+          postToken(uid)
           // Show the success alert
           Alert.alert('Success!', 'You are now logged in');
 
