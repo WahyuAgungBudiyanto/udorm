@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import {Button, StyleSheet, Text, View, Alert} from 'react-native';
+import {Alert} from 'react-native';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Router from './routers';
 import NotifService from './notification-setup/NotifService';
+import { storeData } from './utils/LocalStorage';
 
 const App = () => {
-
   const [ registerToken, setRegisterToken] = useState('');
   const [fcmRegistered, setFcmRegistered ] = useState(false);
 
     const onRegister = (token) =>{
-      console.log("token:",token.token);
+      console.log("token on register:",token.token);
       setRegisterToken(token.token)
       setFcmRegistered(true)
     }
@@ -24,7 +24,10 @@ const App = () => {
 
     useEffect(() => {
       new NotifService(onRegister, onNotif);
-    }, [])
+      if(registerToken.length !== 0){
+        storeData('tokenpn',registerToken );
+      }
+    }, [registerToken])
     
   return (
     <NavigationContainer>
@@ -35,14 +38,6 @@ const App = () => {
 
 export default App;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 // // ini code push notification
 // import React, {useState} from 'react';

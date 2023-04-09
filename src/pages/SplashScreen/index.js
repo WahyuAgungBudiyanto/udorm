@@ -1,9 +1,31 @@
 import {StyleSheet, Text, View, Image, Dimensions} from 'react-native';
+import {useEffect} from 'react';
 import {Label} from '../../components';
 import {Logo} from '../../assets/images';
+import { getData } from '../../utils/LocalStorage';
 const {width, height} = Dimensions.get('window');
 
-const SplashScreen = () => {
+const SplashScreen = (props) => {
+  useEffect(() => {
+   
+    getData('tokenpn').then(data => {
+        getData('userSession').then(dataSession => {
+          if(dataSession){
+            setTimeout(() => {
+              props.navigation.replace( dataSession.userType == 'Student' ? 'HomeStudent' : 'HomeMonitor')
+            }, 200)
+          }
+          else if (dataSession == null){
+            setTimeout(() => {
+              props.navigation.replace('SignIn',{tokenpn:data})
+            }, 200)
+          }
+        });
+    });
+
+  }, [])
+  
+
   return (
     <View style={styles.main}>
       <View style={styles.logoContainer}>

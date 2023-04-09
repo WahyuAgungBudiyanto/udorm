@@ -1,5 +1,5 @@
 import {StyleSheet, View, TouchableOpacity, Image, Alert} from 'react-native';
-import {React, useState} from 'react';
+import {React, useState, useEffect} from 'react';
 import {Header, Button, Gap, Label, TextInput, CustomTextInput} from '../../components';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
@@ -8,7 +8,7 @@ import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
 import {getDatabase, ref as r, get, update, set} from 'firebase/database';
-import {storeData} from '../../utils/LocalStorage';
+import {storeData, getData} from '../../utils/LocalStorage';
 
 const checkUserType = async uid => {
   const db = getDatabase();
@@ -30,19 +30,22 @@ const checkUserType = async uid => {
   return null;
 };
 
-const SignIn = ({navigation, tokenpn}) => {
+const SignIn = ({navigation, route}) => {
+
   const [selectedValue, setSelectedValue] = useState('Student');
   const [isChecked, setIsChecked] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [tokenpn, setTokenpn] = useState('');
+
   const handleCheck = () => {setIsChecked(!isChecked);};
+
   
   const db = getDatabase();
-  
   function postToken(uid) {
     const studentRef = r(db, `Student/${uid}/tokenpn`);
-    set(studentRef, tokenpn)
+    set(studentRef,tokenpn)
       .then(() => {
         console.log("Token updated successfully!");
       })
@@ -50,11 +53,9 @@ const SignIn = ({navigation, tokenpn}) => {
         console.error("Error updating token: ", error);
       });
   }
-  
 
   const Login = async () => {
     const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
-
     signInWithEmailAndPassword(authentication, emails, password)
       .then(async re => {
         console.log(re);
@@ -72,9 +73,9 @@ const SignIn = ({navigation, tokenpn}) => {
           // Delay the navigation to the appropriate home screen
           setTimeout(() => {
             if (userType === 'Monitor') {
-              navigation.navigate('HomeMonitor');
+              navigation.replace('HomeMonitor');
             } else if (userType === 'Student') {
-              navigation.navigate('HomeStudent');
+              navigation.replace('HomeStudent');
             }
           }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
         } else {
@@ -86,8 +87,12 @@ const SignIn = ({navigation, tokenpn}) => {
         console.log('Error:', error.message);
       });
   };
-
  
+  useEffect(() => {
+    getData('tokenpn').then(data => {
+      setTokenpn(data)
+    });
+  }, []);
 
   return (
     <View style={styles.main}>
