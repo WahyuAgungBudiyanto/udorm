@@ -66,7 +66,9 @@ const SignIn = ({navigation, route}) => {
 
         if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
           setIsSignedIn(true);
-          postToken(uid)
+          if(userType == 'Student'){
+            postToken(uid)
+          }
           // Show the success alert
           Alert.alert('Success!', 'You are now logged in');
 
