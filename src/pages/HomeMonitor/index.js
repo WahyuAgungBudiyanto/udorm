@@ -6,7 +6,7 @@ import {Alert} from 'react-native';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
 import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
-import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
+import {ref as r, onValue, off, getDatabase, child, get, update, set} from 'firebase/database';
 import {getData, removeData} from '../../utils/LocalStorage';
 
 const HomeMonitor = ({navigation}) => {
@@ -27,16 +27,16 @@ const HomeMonitor = ({navigation}) => {
 }
 
 
-  function removeToken() {
-    const studentRef = r(db, `Student/${uid}/tokenpn`);
-    set(studentRef, '')
-      .then(() => {
-        console.log("Token updated successfully!");
-      })
-      .catch((error) => {
-        console.error("Error updating token: ", error);
-      });
-  }
+  // function removeToken() {
+  //   const studentRef = r(db, `Student/${uid}/tokenpn`);
+  //   set(studentRef, '')
+  //     .then(() => {
+  //       console.log("Token updated successfully!");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error updating token: ", error);
+  //     });
+  // }
 
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const HomeMonitor = ({navigation}) => {
     if (isSignedIn == false) {
       removeData('userSession');
       //console.log("Signed Out Success")
-      removeToken();
+      // removeToken();
       // navigation.replace('SignIn');
       navigation.replace('SplashScreen');
       // BackHandler.exitApp()
