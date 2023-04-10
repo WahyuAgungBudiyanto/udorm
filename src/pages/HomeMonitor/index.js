@@ -1,22 +1,48 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, View, TouchableOpacity, ScrollView, Modal, Text} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, ScrollView, Modal, Text, BackHandler} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import {Alert} from 'react-native';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
 import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
-import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
-import {getData, removeSession} from '../../utils/LocalStorage';
+import {ref as r, onValue, off, getDatabase, child, get, update, set} from 'firebase/database';
+import {getData, removeData} from '../../utils/LocalStorage';
 
 const HomeMonitor = ({navigation}) => {
   const [uid, setUid] = useState();
   const [showModal, setShowModal] = useState(false);
+  const db = getDatabase();
+
+  const handleStackNav = () =>{
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { name: 'SplashScreen'},
+        ],
+      })
+    );
+    BackHandler.exitApp()
+}
+
+
+  // function removeToken() {
+  //   const studentRef = r(db, `Student/${uid}/tokenpn`);
+  //   set(studentRef, '')
+  //     .then(() => {
+  //       console.log("Token updated successfully!");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error updating token: ", error);
+  //     });
+  // }
+
 
   useEffect(() => {
     getData('userSession').then(data => {
       setUid(data.uid);
-      console.log('data di user session monitor:', data);
+      //console.log('data di user session monitor:', data);
     });
   }, []);
 
@@ -35,9 +61,13 @@ const HomeMonitor = ({navigation}) => {
 
   const handleSignOutNavigate = () => {
     if (isSignedIn == false) {
-      removeSession('userSession');
+      removeData('userSession');
       //console.log("Signed Out Success")
-      navigation.navigate('SignIn');
+      // removeToken();
+      // navigation.replace('SignIn');
+      navigation.replace('SplashScreen');
+      // BackHandler.exitApp()
+      // handleStackNav()
     } else {
       console.log('Error');
       // or show an error message to the user
@@ -120,7 +150,7 @@ const resetStudentLocations = async () => {
       />
       <Gap height={8} />
       <Button
-        title="Profile"
+        title="History"
         color="#7BC9DE"
         textColor="white"
         onPress={ProfileGo}

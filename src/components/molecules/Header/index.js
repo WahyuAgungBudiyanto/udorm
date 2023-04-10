@@ -14,16 +14,16 @@ const Header = ({onPress, navigation, SigninColor, SignupColor, SigninColorBack,
       </View>
       {/*Logo dan Teks*/}
       <View style={styles.logoWrapper}>
-        <View style={styles.btnSigninBack(SigninColorBack)}>
-          <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+        <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+          <View style={styles.btnSigninBack(SigninColorBack)}>
             <Text style={styles.btnSignin(SigninColor)}>Sign In</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.btnSignupBack(SignupColorBack)}>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+          <View style={styles.btnSignupBack(SignupColorBack)}>
             <Text style={styles.btnSignup(SignupColor)}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );

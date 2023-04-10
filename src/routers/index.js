@@ -6,52 +6,29 @@ import {storeData, getData} from '../utils/LocalStorage';
 
 const Stack = createNativeStackNavigator();
 
-const Router = () => {
-  const [loading, setLoading] = useState(true);
+const Router = ({tokenpn}) => {
   const [user, setUser] = useState();
-
-  console.log("user di routes:", user);
-
+  
   useEffect(() => {
     getData('userSession').then(data => {
       setUser(data)
-      console.log("data di user routes:",data);
+      //console.log("data di user routes:",data);
     });
-
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 3000); // 5 seconds delay
-
-    return () => clearTimeout(timeout);
   }, []);
 
-  if (loading) {
-    return <SplashScreen />;
-  }
-
+ 
   return (
     <Stack.Navigator
-      initialRouteName="SignIn"
+      initialRouteName="SplashScreen"
       screenOptions={{headerShown: false}}>
-      {user == undefined && (
-        <>
-          <Stack.Screen name="SignIn" component={SignIn} />
-          <Stack.Screen name="SignUp" component={SignUp} />
-        </>
-      )}
-      {user == undefined || user.userType == 'Student' ? (
-        <>
-          <Stack.Screen name="HomeStudent" component={HomeStudent} />
-          <Stack.Screen name="ProfilStudent" component={ProfilStudent} />
-        </>
-      ) : null}
-      {user == undefined || user.userType == 'Monitor' ? (
-        <>
-          <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
-          <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
-        </>
-      ) : null}
-
+      <Stack.Screen name="SplashScreen" component={SplashScreen} />
+      {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
+      <Stack.Screen name="SignIn" initialParams={{ tokenpn: tokenpn }} component={SignIn} />
+      <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen name="HomeStudent" component={HomeStudent} />
+      <Stack.Screen name="ProfileStudent" component={ProfilStudent} />
+      <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
+      <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
       <Stack.Screen name="MainLoc" component={MainLoc} />
     </Stack.Navigator>
   );

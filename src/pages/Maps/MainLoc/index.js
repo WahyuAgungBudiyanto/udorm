@@ -30,11 +30,14 @@ const MainLoc = ({navigation}) => {
   const [inside, setInside] = useState(false);
   const [studentType, setStudentType] = useState(null);
   const [absentType, setAbsentType] = useState(null);
+  const [studentToken, setStudentToken] = useState([]);
   const [userType, setUserType] = useState(null);
   const [studentLocations, setStudentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
   const [sheetDBAPI, setSheetDBAPI] = useState('');
+  const [absenNow, setAbsenNow] = useState(false)
+
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -57,6 +60,25 @@ const MainLoc = ({navigation}) => {
   };
 
 
+  const fetchTokenpn = () => {
+    const studentTypeRef = r(db, `Student`);
+    onValue(
+      studentTypeRef,
+      snapshot => {
+        console.log("snapshot tokenpn:",snapshot.val());
+        let tempArray =[]
+        for (const key in snapshot.val()) {
+            tempArray.push(snapshot.val()[key].tokenpn)
+          // console.log(`${snapshot.val()[key].tokenpn}`);
+        }
+        setStudentToken(tempArray);
+      },
+      error => {
+        console.error(error);
+      },
+    );
+  };
+
   const fetchStudentType = () => {
     const studentTypeRef = r(db, `Student/${uid}/StudentType`);
     onValue(
@@ -73,6 +95,7 @@ const MainLoc = ({navigation}) => {
       },
     );
   };
+
   const fetchAbsentType = () => {
     const MonitorTypeRef = r(db, `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`);
     onValue(
@@ -111,6 +134,7 @@ const MainLoc = ({navigation}) => {
   useEffect(() => {
     fetchAbsentType(); // Call the function to set absentType state
     fetchSheetDBAPI();
+    fetchTokenpn();
   }, []);
 
   // Log the value of absentType when it is updated
@@ -362,6 +386,37 @@ const formatWITDateTime = date => {
     .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 };
 
+
+const sendNotification = () => {
+  const headers = {
+    'Authorization': 'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
+    'Content-Type': 'application/json'
+  };
+
+  const data = {
+    // registration_ids: [
+    //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
+    //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
+    // ],
+    registration_ids: studentToken,
+    priority: 'high',
+    notification: {
+      title: 'siap siap absen',
+      body: 'siap buka hp',
+      sound: 'default'
+    }
+  };
+
+  fetch('https://fcm.googleapis.com/fcm/send', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(data)
+  })
+    .then(response => console.log(response))
+    .catch(error => console.error(error));
+};
+
+
 const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
 
@@ -462,6 +517,10 @@ const handleAbsentNowPress = async () => {
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
 };
 
+const handleNotifyStudent  = async () =>{
+  sendNotification()
+  setAbsenNow(true)
+}
 
 
 
@@ -606,8 +665,12 @@ const resetStudentLocations = async () => {
             pressed ? styles.buttonPressed : styles.buttonNotPressed,
             {opacity: pressed ? 0.5 : 1},
           ]}
-          onPress={handleAbsentNowPress}>
-          <Text style={styles.buttonText}>ABSENT NOW</Text>
+          onPress={absenNow?handleAbsentNowPress: handleNotifyStudent}>
+          <Text style={styles.buttonText}>
+            {
+              absenNow? 'ABSENT NOW' :'NOTIFY STUDENT'
+            }
+            </Text>
         </Pressable>
       )}
       {isLoading && (
