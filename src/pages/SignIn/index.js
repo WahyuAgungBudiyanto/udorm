@@ -1,13 +1,11 @@
 import {StyleSheet, View, TouchableOpacity, Image, Alert} from 'react-native';
 import {React, useState, useEffect} from 'react';
 import {Header, Button, Gap, Label, TextInput, CustomTextInput} from '../../components';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
 import {Picker} from '@react-native-picker/picker';
-import SelectDropdown from 'react-native-select-dropdown';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
-import {getDatabase, ref as r, get, update, set} from 'firebase/database';
+import {getDatabase, ref as r, get, set} from 'firebase/database';
 import {storeData, getData} from '../../utils/LocalStorage';
 
 const checkUserType = async uid => {
@@ -33,21 +31,16 @@ const checkUserType = async uid => {
 const SignIn = ({navigation, route}) => {
 
   const [selectedValue, setSelectedValue] = useState('Student');
-  const [isChecked, setIsChecked] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tokenpn, setTokenpn] = useState('');
 
-  const handleCheck = () => {setIsChecked(!isChecked);};
-
-  
   const db = getDatabase();
   function postToken(uid) {
     const studentRef = r(db, `Student/${uid}/tokenpn`);
     set(studentRef,tokenpn)
       .then(() => {
-        console.log("Token updated successfully!");
+        //console.log("Token updated successfully!");
       })
       .catch((error) => {
         console.error("Error updating token: ", error);
@@ -56,6 +49,11 @@ const SignIn = ({navigation, route}) => {
 
   const Login = async () => {
     const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
+    if (!email || !password) {
+      // Show error message to the user
+      alert('Please enter your email and password');
+      return;
+    }
     signInWithEmailAndPassword(authentication, emails, password)
       .then(async re => {
         console.log(re);
@@ -65,13 +63,11 @@ const SignIn = ({navigation, route}) => {
         storeData('userSession', {uid, email, password, userType});
 
         if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
-          setIsSignedIn(true);
           if(userType == 'Student'){
             postToken(uid)
           }
           // Show the success alert
-          Alert.alert('Success!', 'You are now logged in');
-
+          alert('You are now logged in');
           // Delay the navigation to the appropriate home screen
           setTimeout(() => {
             if (userType === 'Monitor') {
@@ -108,7 +104,7 @@ const SignIn = ({navigation, route}) => {
       <View style={styles.logoContainer}>
         <Image source={Logo} style={styles.logo} />
       </View>
-      <Gap height={1} />
+      <Gap height={10} />
       <Label
         title="Login as"
         textSize={16}
@@ -161,20 +157,7 @@ const SignIn = ({navigation, route}) => {
         onChangeText={text => setPassword(text)}
         secureTextEntry={true}
       />
-
-      <Gap height={12} />
-      <View style={styles.remember}>
-        <TouchableOpacity
-          onPress={handleCheck}
-          style={[
-            styles.checkmark,
-            isChecked && {backgroundColor: '#13FF0E', borderColor: '#13FF0E'},
-          ]}>
-          {isChecked && <Icon name="check" size={20} color="white" />}
-        </TouchableOpacity>
-        <Label title="Remember Me" textColor="#585757" />
-      </View>
-      <Gap height={12} />
+      <Gap height={20} />
       <Button
         title="Login"
         color="#7BC9DE"
@@ -182,8 +165,7 @@ const SignIn = ({navigation, route}) => {
         onPress={Login}
       />
       <Gap height={8} />
-      <Label title="Forgot password?" tALight="center" jContent="center" />
-      <Gap height={300} />
+      {/* <Label title="Forgot password?" tALight="center" jContent="center" /> */}
     </View>
   );
 };
@@ -195,9 +177,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   logo: {
-    width: 100, // Adjust the width as needed
-    height: 100, // Adjust the height as needed
-    resizeMode: 'contain', // To maintain the aspect ratio
+    width: 150, 
+    height: 150, 
+    resizeMode: 'contain',
   },
   logoContainer: {
     justifyContent: 'center',
@@ -230,11 +212,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   picker: {
-    color: 'black', // set text color to black
+    color: 'black',
   },
   pickerItem: {
-    color: 'black', // set dropdown item text color to black
-    backgroundColor: 'white', // set dropdown item background color to white
+    color: 'black', 
+    backgroundColor: 'white',
   },
 });
 

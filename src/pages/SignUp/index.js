@@ -11,21 +11,14 @@ import {ref as r, getDatabase, child, get, update} from 'firebase/database';
 import {storeData} from '../../utils/LocalStorage';
 
 const SignUp = ({navigation}) => {
-  const [isChecked, setIsChecked] = useState(false);
-
   const [selectedValue, setSelectedValue] = useState('Crystal');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [FullName, setFullName] = useState('');
   const [NumberParent, setNumberParent] = useState('');
-  const [Gender, setGender] = useState('');
+  const [Gender, setGender] = useState('Male');
   const [Faculty, setFaculty] = useState('Ilmu Komputer');
 
-
-
-  const handleCheck = () => {
-    setIsChecked(!isChecked);
-  };
 
   const Register = () => {
     const noRegis = email.split('@')[0];
@@ -44,7 +37,8 @@ const SignUp = ({navigation}) => {
           Gender: Gender,
           Faculty: Faculty,
           Location: '',
-          points: 0
+          points: 0,
+          tokenpn: ''
         });
         const data = {
           uid: re.user.uid,
@@ -160,13 +154,26 @@ const SignUp = ({navigation}) => {
         onChangeText={text => setNumberParent(text)}
       />
       <Gap height={12} />
-
-      <TextInput
+      <Label
         title="Gender"
-        placeholder="Male/Female"
-        value={Gender}
-        onChangeText={text => setGender(text)}
+        textSize={16}
+        textFam="Poppins-Regular"
+        tALight="left"
+        mL={50}
       />
+      <Gap height={8} />
+      <View style={styles.pickerContainer}>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            style={[styles.picker, {flex: 1}]}
+            selectedValue={Gender}
+            onValueChange={(itemValue, itemIndex) => setGender(itemValue)}
+            dropdownIconColor="#7BC9DE">
+            <Picker.Item label="Male" value="Male" style={styles.pickerItem} />
+            <Picker.Item label="Female" value="Female" style={styles.pickerItem} />
+          </Picker>
+        </View>
+      </View>
       <Gap height={12} />
       <Label
         title="Faculty"
@@ -231,7 +238,7 @@ const SignUp = ({navigation}) => {
         onPress={Register}
       />
 
-      <Gap height={20} />
+      <Gap height={50} />
     </ScrollView>
   );
 };
@@ -243,9 +250,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   logo: {
-    width: 100, // Adjust the width as needed
-    height: 100, // Adjust the height as needed
-    resizeMode: 'contain', // To maintain the aspect ratio
+    width: 150,
+    height: 150,
+    resizeMode: 'contain', 
   },
   logoContainer: {
     justifyContent: 'center',
@@ -279,10 +286,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   picker: {
-    color: 'black', // set text color to black
+    color: 'black', 
   },
   pickerItem: {
-    color: 'black', // set dropdown item text color to black
-    backgroundColor: 'white', // set dropdown item background color to white
+    color: 'black',
+    backgroundColor: 'white', 
   },
 });

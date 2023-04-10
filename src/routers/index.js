@@ -12,7 +12,7 @@ const Router = ({tokenpn}) => {
   useEffect(() => {
     getData('userSession').then(data => {
       setUser(data)
-      console.log("data di user routes:",data);
+      //console.log("data di user routes:",data);
     });
   }, []);
 
@@ -25,18 +25,10 @@ const Router = ({tokenpn}) => {
       {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
       <Stack.Screen name="SignIn" initialParams={{ tokenpn: tokenpn }} component={SignIn} />
       <Stack.Screen name="SignUp" component={SignUp} />
-      {user == null || user?.userType == 'Student' ? (
-        <>
-          <Stack.Screen name="HomeStudent" component={HomeStudent} />
-          <Stack.Screen name="ProfilStudent" component={ProfilStudent} />
-        </>
-       ) : null}
-      {user == null || user?.userType == 'Monitor' ? (
-        <>
-          <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
-          <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
-        </>
-      ) : null}
+      <Stack.Screen name="HomeStudent" component={HomeStudent} />
+      <Stack.Screen name="ProfileStudent" component={ProfilStudent} />
+      <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
+      <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
       <Stack.Screen name="MainLoc" component={MainLoc} />
     </Stack.Navigator>
   );

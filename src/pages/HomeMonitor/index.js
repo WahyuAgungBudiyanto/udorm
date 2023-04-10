@@ -42,7 +42,7 @@ const HomeMonitor = ({navigation}) => {
   useEffect(() => {
     getData('userSession').then(data => {
       setUid(data.uid);
-      console.log('data di user session monitor:', data);
+      //console.log('data di user session monitor:', data);
     });
   }, []);
 
@@ -150,7 +150,7 @@ const resetStudentLocations = async () => {
       />
       <Gap height={8} />
       <Button
-        title="Profile"
+        title="History"
         color="#7BC9DE"
         textColor="white"
         onPress={ProfileGo}

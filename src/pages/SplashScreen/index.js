@@ -13,12 +13,12 @@ const SplashScreen = (props) => {
           if(dataSession){
             setTimeout(() => {
               props.navigation.replace( dataSession.userType == 'Student' ? 'HomeStudent' : 'HomeMonitor')
-            }, 200)
+            }, 1000)
           }
           else if (dataSession == null){
             setTimeout(() => {
-              props.navigation.replace('SignIn',{tokenpn:data})
-            }, 200)
+              props.navigation.replace('SignIn', {tokenpn: data});
+            }, 1000);
           }
         });
     });
@@ -29,8 +29,10 @@ const SplashScreen = (props) => {
   return (
     <View style={styles.main}>
       <View style={styles.logoContainer}>
-        <Image source={Logo} style={styles.logo} />
-        <Text style={styles.title}>Unklab Dormitory</Text>
+        <View style={styles.content}>
+          <Image source={Logo} style={styles.logo} />
+          <Label title="Unklab Dormitory" textColor="#7BC9DE" textSize={25} tALight="center" mL={(width * 0.6) - 100} mT={-(height * 0.03)} />
+        </View>
       </View>
     </View>
   );
@@ -50,17 +52,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  content: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: height * 0.03,
+  },
   logo: {
     width: width * 0.8,
-    height: height * 0.5,
+    height: height * 0.2,
     resizeMode: 'contain',
-  },
-  title: {
-    position: 'absolute',
-    top: height * 0.55,
-    left: width * 0.36,
-    fontSize: 15,
-    fontFamily: 'Poppins-Medium',
-    color: '#7BC9DE',
   },
 });
