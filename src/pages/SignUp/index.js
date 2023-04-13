@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import {Logo} from '../../assets/images';
-import {Picker} from '@react-native-picker/picker';
 import RadioButtonsGroup from 'react-native-radio-buttons-group';
 import {Header, Button, TextInput, Gap, Label, CustomTextInput} from '../../components';
 import authentication,{db} from '../../config/firebase-config'

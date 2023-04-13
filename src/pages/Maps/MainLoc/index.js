@@ -1,4 +1,4 @@
-import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Linking  } from 'react-native';
+import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Dimensions  } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -12,6 +12,7 @@ import AnnexCoordinate from '../AnnexCoordinate';
 import ChapelCoordinate from '../ChapelCoordinate';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
 import authentication, {db} from '../../../config/firebase-config';
+const {width, height} = Dimensions.get('window');
 
 const MainLoc = ({navigation}) => {
   const handleButtonPress = () => {
@@ -37,6 +38,8 @@ const MainLoc = ({navigation}) => {
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
   const [sheetDBAPI, setSheetDBAPI] = useState('');
   const [absenNow, setAbsenNow] = useState(false)
+  const [lastNotif, setlastNotif] = useState(false);
+  const [date, setDate] = useState(new Date());
 
 
   const checkUserType = async uid => {
@@ -65,7 +68,7 @@ const MainLoc = ({navigation}) => {
     onValue(
       studentTypeRef,
       snapshot => {
-        console.log("snapshot tokenpn:",snapshot.val());
+        //console.log("snapshot tokenpn:",snapshot.val());
         let tempArray =[]
         for (const key in snapshot.val()) {
             tempArray.push(snapshot.val()[key].tokenpn)
@@ -74,7 +77,7 @@ const MainLoc = ({navigation}) => {
         setStudentToken(tempArray);
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
@@ -91,7 +94,7 @@ const MainLoc = ({navigation}) => {
         }
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
@@ -108,7 +111,7 @@ const MainLoc = ({navigation}) => {
         }
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
@@ -127,7 +130,7 @@ const MainLoc = ({navigation}) => {
         }
       });
     } catch (error) {
-      console.error('There was a problem fetching the API endpoint:', error);
+      //console.error('There was a problem fetching the API endpoint:', error);
     }
   };
 
@@ -164,7 +167,9 @@ const getCurrentLocation = inside => {
       };
       updateUserLocation(location, inside);
     },
-    error => console.log(error),
+    error => {
+      // Handle errors here
+    },
     {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
   );
 };
@@ -246,13 +251,18 @@ const getCurrentLocation = inside => {
                 });
               },
               error => {
-                console.log(error.code, error.message);
+                //console.log(error.code, error.message);
               },
               {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
             );
           }, 2000);
         } else {
           console.log('Location permission denied');
+          if (userType === 'Monitor') {
+            navigation.navigate('HomeMonitor');
+          } else if (userType === 'Student') {
+            navigation.navigate('HomeStudent');
+          }
         }
       } catch (err) {
         console.warn(err);
@@ -366,25 +376,25 @@ const checkAllStudentsInsideStatus = async () => {
   }
 };
 
-const formatWITDateTime = date => {
-  // Add 7 hours to the date (WIT is UTC+7)
-  date.setHours(date.getHours() + 7);
+ useEffect(() => {
+   const timer = setInterval(() => {
+     setDate(new Date());
+   }, 1000);
 
-  // Extract date components
-  const day = date.getDate();
-  const month = date.getMonth() + 1; // Months are 0-based
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
+   return () => {
+     clearInterval(timer);
+   };
+ }, []);
 
-  // Format date and time as 'dd/MM/yyyy HH:mm:ss'
-  return `${day.toString().padStart(2, '0')}/${month
-    .toString()
-    .padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes
-    .toString()
-    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
+ const formattedDate = new Intl.DateTimeFormat('en-US', {
+   day: '2-digit',
+   month: 'long',
+   year: 'numeric',
+   hour: '2-digit',
+   minute: '2-digit',
+   second: '2-digit',
+   hour12: true,
+ }).format(date);
 
 
 const sendNotification = () => {
@@ -413,7 +423,37 @@ const sendNotification = () => {
     body: JSON.stringify(data)
   })
     .then(response => console.log(response))
-    .catch(error => console.error(error));
+    .catch(error => console.error(""));
+};
+
+const sendLastNotif = () => {
+  const headers = {
+    Authorization:
+      'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
+    'Content-Type': 'application/json',
+  };
+
+  const data = {
+    // registration_ids: [
+    //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
+    //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
+    // ],
+    registration_ids: studentToken,
+    priority: 'high',
+    notification: {
+      title: 'absen selesai',
+      body: 'makasih',
+      sound: 'default',
+    },
+  };
+
+  fetch('https://fcm.googleapis.com/fcm/send', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(data),
+  })
+    .then(response => console.log(response))
+    .catch(error => console.error(''));
 };
 
 
@@ -421,7 +461,7 @@ const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
 
   if (!result) {
-    console.error('Error fetching student data.');
+    //console.error('Error fetching student data.');
     return;
   }
 
@@ -433,6 +473,10 @@ const handleAbsentNowPress = async () => {
     .filter(studentUid => !allStudentsInsideStatus[studentUid])
     .map(studentUid => ({
       uid: studentUid,
+      Email: studentsData[studentUid].Email.substring(
+        0,
+        studentsData[studentUid].Email.indexOf('@'),
+      ),
       Name: studentsData[studentUid].Name,
       Parent: studentsData[studentUid].Parent,
       Location: studentsData[studentUid].Location,
@@ -442,12 +486,10 @@ const handleAbsentNowPress = async () => {
     return {
       name: student.Name,
       phoneNumber: student.Parent,
-      latitude: student.Location.latitude,
-      longitude: student.Location.longitude,
     };
   });
 
-  console.log(absentPhoneNumbersAndNames);
+  //console.log(absentPhoneNumbersAndNames);
 
   const url = 'http://217.195.197.235:5000/send-message';
 
@@ -474,21 +516,28 @@ const handleAbsentNowPress = async () => {
       const jsonResponse = await response.json();
       console.log(jsonResponse);
     } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
+      //console.error('There was a problem with the fetch operation:', error);
     }
   });
 
   // Create an array of objects containing the absent student's name, and current datetime
   const absentData = absentStudents.map(student => {
     return {
-      DATETIME: formatWITDateTime(new Date()),
+      NO: 'INCREMENT',
+      DATE: formattedDate,
+      NOREGIS: student.Email,
       NAME: student.Name,
-      ABSENTTYPE: absentType,
+      ABSENT: absentType,
     };
   });
 
   console.log(absentData);
 
+  // Convert absentPhoneNumbersAndNames array to JSON string
+  const saveAbsent = JSON.stringify(absentData);
+
+  // Save JSON string to local storage
+  localStorage.setItem('absentData', saveAbsent);
 
   // Send data to SheetDB using a POST request for each absent student
   for (const data of absentData) {
@@ -502,26 +551,72 @@ const handleAbsentNowPress = async () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        if (errorText) {
+          errorMsg += ` - ${errorText}`;
+        }
+        throw new Error(errorMsg);
       }
 
       const jsonResponse = await response.json();
       console.log(jsonResponse);
     } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
+      let alertMsg = '';
+      switch (error.message) {
+        case 'HTTP error! status: 400':
+          alertMsg = 'Bad Request';
+          break;
+        case 'HTTP error! status: 401':
+          alertMsg = 'Unauthorized';
+          break;
+        case 'HTTP error! status: 402':
+          alertMsg = 'Payment Required';
+          break;
+        case 'HTTP error! status: 403':
+          alertMsg = 'Forbidden';
+          break;
+        case 'HTTP error! status: 404':
+          alertMsg = 'Not Found';
+          break;
+        case 'HTTP error! status: 405':
+          alertMsg = 'Method Not Allowed';
+          break;
+        case 'HTTP error! status: 429':
+          alertMsg = 'Too Many Requests';
+          break;
+        case 'HTTP error! status: 500':
+          alertMsg = 'Internal Server Error';
+          break;
+        case 'HTTP error! status: 1015':
+          alertMsg = 'Rate limit exceeded';
+          break;
+        default:
+          alertMsg = 'There was a problem with the fetch operation';
+          break;
+      }
+      Alert.alert('Alert', alertMsg);
+      //console.error(error);
     }
   }
 
-  
-
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
+  setAbsenNow(false);
+  setlastNotif(true);
 };
 
-const handleNotifyStudent  = async () =>{
-  sendNotification()
-  setAbsenNow(true)
-}
+const handleNotifyStudent = async () => {
+  sendNotification();
+  setAbsenNow(true);
+};
 
+
+
+const handleLastNotif = async () => {
+  sendLastNotif();
+  
+  navigation.navigate('HomeMonitor'); 
+};
 
 
 const resetStudentLocations = async () => {
@@ -602,16 +697,20 @@ const resetStudentLocations = async () => {
                   onInsideChange={setInside}
                 />
               )}
-            {((absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' &&
-              [
-                'Crystal',
-                'Edel',
-                'Genset',
-                'Guest',
-                'Jasmine',
-                'Annex',
-              ].includes(studentType)) ||
-              (absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' && userType === 'Monitor')) && (
+            {(absentType === 'Chapel-RabuMalam' ||
+              absentType === 'Chapel-Vesper' ||
+              (absentType === 'Chapel-Sabat' &&
+                [
+                  'Crystal',
+                  'Edel',
+                  'Genset',
+                  'Guest',
+                  'Jasmine',
+                  'Annex',
+                ].includes(studentType)) ||
+              absentType === 'Chapel-RabuMalam' ||
+              absentType === 'Chapel-Vesper' ||
+              (absentType === 'Chapel-Sabat' && userType === 'Monitor')) && (
               <ChapelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
@@ -656,7 +755,7 @@ const resetStudentLocations = async () => {
           <View>
             <Image source={ZoomOut} style={{width: 20, height: 20}} />
           </View>
-        </Pressable>  
+        </Pressable>
       )}
       {userType === 'Monitor' && (
         <Pressable
@@ -665,14 +764,25 @@ const resetStudentLocations = async () => {
             pressed ? styles.buttonPressed : styles.buttonNotPressed,
             {opacity: pressed ? 0.5 : 1},
           ]}
-          onPress={absenNow?handleAbsentNowPress: handleNotifyStudent}>
+          onPress={absenNow ? handleAbsentNowPress : handleNotifyStudent}>
           <Text style={styles.buttonText}>
-            {
-              absenNow? 'ABSENT NOW' :'NOTIFY STUDENT'
-            }
-            </Text>
+            {absenNow ? 'ABSENT NOW' : 'NOTIFY STUDENT'}
+          </Text>
         </Pressable>
       )}
+
+      {userType === 'Monitor' && lastNotif && (
+        <Pressable
+          style={({pressed}) => [
+            styles.floatingButton,
+            pressed ? styles.buttonPressed : styles.buttonNotPressed,
+            {opacity: pressed ? 0.5 : 1},
+          ]}
+          onPress={handleLastNotif}>
+          <Text style={styles.buttonText}>NOTIFY STUDENT DONE</Text>
+        </Pressable>
+      )}
+
       {isLoading && (
         <View
           style={{
@@ -728,8 +838,8 @@ const styles = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     bottom: 20,
-    marginHorizontal: 170,
-    paddingHorizontal: 15,
+    alignSelf:'center',
+    paddingHorizontal: width * 0.03,
     paddingVertical: 5,
     borderRadius: 5,
   },
