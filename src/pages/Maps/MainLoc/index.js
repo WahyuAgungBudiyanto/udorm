@@ -449,7 +449,7 @@ const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
 
   if (!result) {
-    //console.error('Error fetching student data.');
+    //console.error('Error fetching student data.')
     return;
   }
 
