@@ -35,26 +35,7 @@ const SignIn = ({navigation, route}) => {
   const [tokenpn, setTokenpn] = useState('');
 
   const db = getDatabase();
-  // Request permission and get the device token
-  function requestPushPermissionAndGetToken() {
-    PushNotification.configure({
-      onRegister: function (token) {
-        console.log('Token:', token.token);
-        setTokenpn(token.token);
-      },
 
-      // Other configurations...
-      onNotification: function (notification) {
-        console.log('Notification:', notification);
-      },
-      requestPermissions: Platform.OS === 'ios',
-    });
-  }
-
-  useEffect(() => {
-    // Request permission and get the device token
-    requestPushPermissionAndGetToken();
-  }, []);
 
   const postToken = async uid => {
     const studentRef = r(db, `Student/${uid}`);
@@ -68,78 +49,82 @@ const SignIn = ({navigation, route}) => {
   };
 
   const Login = async () => {
-    const emails = `${email}${
-      selectedValue === 'monitor'
-        ? '@monitor.unklab.ac.id'
-        : '@student.unklab.ac.id'
-    }`;
-    if (!email || !password) {
-      // Show error message to the user
-      alert('Please enter your email and password');
-      return;
-    }
-    signInWithEmailAndPassword(authentication, emails, password)
-      .then(async re => {
-        console.log(re);
-        const uid = re.user.uid;
-        const email = re.user.email;
-        const userType = await checkUserType(uid);
-        storeData('userSession', {uid, email, password, userType});
-        // Assuming `tokenpn` is a variable containing the value you want to save
+    if (tokenpn) {
+      const emails = `${email}${
+        selectedValue === 'monitor'
+          ? '@monitor.unklab.ac.id'
+          : '@student.unklab.ac.id'
+      }`;
+      if (!email || !password) {
+        // Show error message to the user
+        alert('Please enter your email and password');
+        return;
+      }
+      signInWithEmailAndPassword(authentication, emails, password)
+        .then(async re => {
+          console.log(re);
+          const uid = re.user.uid;
+          const email = re.user.email;
+          const userType = await checkUserType(uid);
+          storeData('userSession', {uid, email, password, userType});
+          // Assuming `tokenpn` is a variable containing the value you want to save
 
-        let studentRef;
-        if (userType == 'Student') {
-          studentRef = r(db, `Student/${uid}`);
-        } else {
-          studentRef = r(db, `Monitor/${uid}`);
-        }
-        update(studentRef, {tokenpn: tokenpn})
-          .then(() => {
-            console.log('Token updated successfully!');
-          })
-          .catch(error => {
-            console.error('Error updating token: ', error);
-          });
-
-        if (
-          userType &&
-          userType.toLowerCase() === selectedValue.toLowerCase()
-        ) {
+          let studentRef;
           if (userType == 'Student') {
-            postToken(uid);
+            studentRef = r(db, `Student/${uid}`);
+          } else {
+            studentRef = r(db, `Monitor/${uid}`);
           }
-          // Show the success alert
-          alert('You are now logged in');
-          // Delay the navigation to the appropriate home screen
-          setTimeout(() => {
-            if (userType === 'Monitor') {
-              navigation.replace('HomeMonitor');
-            } else if (userType === 'Student') {
-              navigation.replace('HomeStudent');
+          update(studentRef, {tokenpn: tokenpn})
+            .then(() => {
+              console.log('Token updated successfully!');
+            })
+            .catch(error => {
+              console.error('Error updating token: ', error);
+            });
+
+          if (
+            userType &&
+            userType.toLowerCase() === selectedValue.toLowerCase()
+          ) {
+            if (userType == 'Student') {
+              postToken(uid);
             }
-          }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
-        } else {
-          Alert.alert('Error!', 'Invalid user type');
-        }
-      })
-      .catch(error => {
-        if (error.code === 'auth/user-not-found') {
-          console.log('User not found.');
-          Alert.alert('Alert!', 'User not found');
-        } else if (error.code === 'auth/wrong-password') {
-          console.log('Incorrect password.');
-          Alert.alert('Alert!', 'Incorrect Password');
-        } else if (error.code === 'auth/invalid-email') {
-          console.log('Please fill it');
-          Alert.alert('Alert!', 'Email or Password is empty');
-        } else if (error.code === 'auth/internal-error') {
-          console.log('Please fill it');
-          Alert.alert('Alert!', 'Email or Password is empty');
-        } else {
+            // Show the success alert
+            alert('You are now logged in');
+            // Delay the navigation to the appropriate home screen
+            setTimeout(() => {
+              if (userType === 'Monitor') {
+                navigation.replace('HomeMonitor');
+              } else if (userType === 'Student') {
+                navigation.replace('HomeStudent');
+              }
+            }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
+          } else {
+            Alert.alert('Error!', 'Invalid user type');
+          }
+        })
+        .catch(error => {
+          if (error.code === 'auth/user-not-found') {
+            console.log('User not found.');
+            Alert.alert('Alert!', 'User not found');
+          } else if (error.code === 'auth/wrong-password') {
+            console.log('Incorrect password.');
+            Alert.alert('Alert!', 'Incorrect Password');
+          } else if (error.code === 'auth/invalid-email') {
+            console.log('Please fill it');
+            Alert.alert('Alert!', 'Email or Password is empty');
+          } else if (error.code === 'auth/internal-error') {
+            console.log('Please fill it');
+            Alert.alert('Alert!', 'Email or Password is empty');
+          } else {
+            console.log('Error:', error.message);
+          }
           console.log('Error:', error.message);
-        }
-        console.log('Error:', error.message);
-      });
+        });
+    } else {
+      alert('app error, please close and start this app');
+    }
   };
 
   useEffect(() => {
