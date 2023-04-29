@@ -412,64 +412,6 @@ const sendNotification = () => {
   })
     .then(response => console.log(response))
     .catch(error => console.error(error));
-};const sendNotification = () => {
-  const headers = {
-    Authorization:
-      'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
-    'Content-Type': 'application/json',
-  };
-
-  const data = {
-    // registration_ids: [
-    //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
-    //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
-    // ],
-    registration_ids: studentToken,
-    priority: 'high',
-    notification: {
-      title: 'ABSENT AKAN DIMULAI',
-      body: 'PASTIKAN ANDA BERAPA DI GOOGLE MAPS APLIKASI',
-      sound: 'default',
-    },
-  };
-
-  fetch('https://fcm.googleapis.com/fcm/send', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(data),
-  })
-    .then(response => console.log(response))
-    .catch(error => console.error(error));
-};
-
-const sendLastNotif = () => {
-  const headers = {
-    Authorization:
-      'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
-    'Content-Type': 'application/json',
-  };
-
-  const data = {
-    // registration_ids: [
-    //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
-    //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
-    // ],
-    registration_ids: studentToken,
-    priority: 'high',
-    notification: {
-      title: 'ABSEN TELAH SELESAI',
-      body: 'TERIMA KASIH',
-      sound: 'default',
-    },
-  };
-
-  fetch('https://fcm.googleapis.com/fcm/send', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(data),
-  })
-    .then(response => console.log(response))
-    .catch(error => console.error(error));
 };
 
   const sendLastNotif = () => {

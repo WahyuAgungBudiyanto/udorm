@@ -9,6 +9,6 @@ import SplashScreen from './SplashScreen';
 import ProfilStudent from './ProfileStudent';
 import ProfileMonitor from './ProfileMonitor';
 import ViewAbsent from './ViewAbsent';
-import ViewHistory from './ViewHistory';
+import ViewHistory from './ViewHIstory';
 
 export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory};
