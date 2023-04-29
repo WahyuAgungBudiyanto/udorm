@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView, Image, BackHandler, Dimensions, Text, ImageBackground, Pressable} from 'react-native';
 import {Header, Button, TextInput, Gap, Label} from '../../components';
-import { BackHome, NotifIcon, mainBackground, LogoAbsentBtn } from '../../assets/images';
+import { BackHome, NotifIcon, mainBackground, LogoAbsentBtn, HistoryIcon,Image1, Image2 } from '../../assets/images';
 import { HomeLogo, profileLogo, LogoutLogo } from '../../assets/icons';
 import authentication from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
@@ -13,6 +13,11 @@ const screenWidth = Math.round(Dimensions.get('window').width);
 const screenHeight = Math.round(Dimensions.get('window').height);
 console.log('Screen Width :', screenWidth);
 console.log('Screen Height :', screenHeight);
+import {
+  responsiveHeight,
+  responsiveWidth,
+  responsiveFontSize,
+} from 'react-native-responsive-dimensions';
 
 
 const HomeStudent = ({navigation}) => {
@@ -20,6 +25,8 @@ const HomeStudent = ({navigation}) => {
   const [date, setDate] = useState(new Date());
   const [userName, setUserName] = useState('');
   const [encourageText, setEncourageText] = useState('Follow the rules to make a better learning environment!');
+
+  
  
    useEffect(() => {
      getData('userSession').then(data => {
@@ -197,6 +204,9 @@ const HomeStudent = ({navigation}) => {
     return () => clearInterval(intervalId);
   }, []);
  
+  const goNotif = () => {
+    navigation.navigate('ViewHistory');
+  };
   return (
     <View style={styles.container}>
       <View style={styles.menuBtn}>
@@ -217,11 +227,13 @@ const HomeStudent = ({navigation}) => {
       <ScrollView style={styles.content}>
         <View style={styles.imageWrapper}>
           <Image source={BackHome} style={{width: width * 1}} />
-          <Image source={NotifIcon} style={styles.NotifIcon} />
+          <View style={styles.notificationIconContainer}>
+            <TouchableOpacity onPress={goNotif}>
+              <NotifIcon width={25} height={25} />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.dateText}>{formattedDate}</Text>
-          <Text style={styles.nameTxt}>
-            Welcome Back, {userName}
-          </Text>
+          <Text style={styles.nameTxt}>Welcome Back, {userName}</Text>
           <View style={styles.quotes}>
             <Text style={styles.quotesText}>{encourageText}</Text>
           </View>
@@ -238,7 +250,11 @@ const HomeStudent = ({navigation}) => {
             justifyContent: 'center',
           }}>
           <TouchableOpacity style={{marginBottom: 10}} onPress={mapsGo}>
-            <Image source={LogoAbsentBtn} style={styles.absentBtn} />
+            <LogoAbsentBtn
+              width={90}
+              height={80}
+              style={{alignSelf: 'center'}}
+            />
             <Label
               title="Absent"
               jContent="center"
@@ -251,7 +267,7 @@ const HomeStudent = ({navigation}) => {
         </View>
         <View
           style={{
-            width: 200,
+            width: '100%',
             height: 500,
             backgroundColor: '#7BC9DE',
             alignSelf: 'center',
@@ -259,7 +275,61 @@ const HomeStudent = ({navigation}) => {
             width: width * 0.8,
             marginTop: 20,
             justifyContent: 'center',
-          }}></View>
+            overflow: 'hidden',
+          }}>
+          <View style={{position: 'absolute', top: '5%', left: '5%'}}>
+            <Label textColor="white" textSize={25} title="What's New" />
+            <Label
+              textColor="white"
+              textSize={15}
+              title="Latest news from Unklab"
+            />
+
+            <View style={{flexDirection: 'row'}}>
+              <Image1
+                style={{marginTop: 10, marginRight: 10, zIndex: 1}}
+                width={130}
+                height={130}
+              />
+              <View style={{marginTop: '5%', marginRight: '5%', zIndex: 1}}>
+                <Label textColor="white" textSize={20} title="UDORM LAUNCHED" />
+                <Label
+                  textColor="white"
+                  textSize={15}
+                  title="Unduh sekarang juga di https://...."
+                />
+                <Label
+                  textColor="white"
+                  textSize={15}
+                  title="Harvi            10 April 2023"
+                />
+              </View>
+            </View>
+
+            <View style={{flexDirection: 'row'}}>
+              <Image2
+                style={{marginTop: 10, zIndex: 1}}
+                width={130}
+                height={130}
+              />
+              <View style={{marginTop: 50, left: 10}}>
+                <Label textColor="white" textSize={20} title="CHAPEL IS HERE" />
+                <Label
+                  textColor="white"
+                  textSize={15}
+                  title="Come and Join us at....
+
+"
+                />
+                <Label
+                  textColor="white"
+                  textSize={15}
+                  title="Harvi            1 April 2023"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -282,9 +352,9 @@ const styles = StyleSheet.create({
     color: '#FFFF',
     zIndex: 1,
     fontWeight: 'bold',
-    top: width * 0.06,
+    marginTop: responsiveHeight(3.5),
     left: width * 0.03,
-    fontSize: width * 0.055,
+    fontSize: responsiveFontSize(2.3),
   },
 
   dateText: {
@@ -302,48 +372,55 @@ const styles = StyleSheet.create({
     zIndex: 1,
     top: width * 0.05,
   },
-  homeLogo: {
-    width: width * 0.08,
-    height: height * 0.04,
-    zIndex: 1,
+  notificationIconContainer: {
+    padding: 5,
     position: 'absolute',
-    right: width * 0.27,
-    marginBottom: 10
+    top: width * 0.03,
+    right: width * 0.03,
+    zIndex: 1,
+  },
+  menuBtn: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: width * 0.8, // 80% of the screen width
+    height: 70,
+    position: 'absolute',
+    bottom: 20,
+    left: width * 0.1, // Center the menuBtn horizontally by setting left to 10% of the screen width
+    backgroundColor: '#FFFF',
+    borderRadius: 30, // Add rounded corners to match the padding
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    zIndex: 1000,
+    padding: 20, // Add padding to the container
+  },
+  homeLogo: {
+    width: '120%',
+    height: '120%',
+    resizeMode: 'contain',
   },
   profileLogo: {
-    width: width * 0.11,
-    height: height * 0.05,
-    position: 'absolute',
-    zIndex: 1,
-    left: 1,
-    bottom: width * 0.01,
+    width: '130%',
+    height: '130%',
+    resizeMode: 'contain',
   },
   logoutLogo: {
-    width: width * 0.09,
-    height: height * 0.04,
-    position: 'absolute',
-    zIndex: 1,
-    left: width * 0.27,
-    bottom: width * 0.07,
+    width: '120%',
+    height: '120%',
+    resizeMode: 'contain',
   },
   homeBar: {
+    textAlign: 'center',
     color: '#7BC9DE',
-    right: width * 0.24,
-    top: height * 0.04,
-    fontSize: width * 0.04,
-    fontWeight: 'bold',
   },
   profileBar: {
+    textAlign: 'center',
     color: '#7BC9DE',
-    left: width * 0.001,
-    top: height * 0.015,
-    fontSize: width * 0.04,
   },
   logoutBar: {
+    textAlign: 'center',
     color: '#7BC9DE',
-    left: width * 0.25,
-    fontSize: width * 0.04,
-    bottom: height * 0.01,
   },
   background: {
     position: 'absolute',
@@ -359,19 +436,10 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 1,
   },
-  menuBtn: {
-    position: 'absolute',
-    bottom: height * 0.02,
-    alignSelf: 'center',
-    paddingHorizontal: width * 0.3,
-    paddingTop: height * 0.02,
-    borderRadius: 30,
-    backgroundColor: '#FFFF',
-    zIndex: 100,
-  },
+
   quotes: {
     width: width * 0.53,
-    height: height * 0.10,
+    height: height * 0.1,
     backgroundColor: '#7BC9DE',
     alignSelf: 'center',
     borderRadius: 50,

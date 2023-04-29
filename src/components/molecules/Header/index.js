@@ -1,7 +1,6 @@
 import {StyleSheet, Text, View, TouchableOpacity, Button} from 'react-native';
 import React from 'react';
-import {IconBack, Exit} from '../../../assets';
-import {Gap} from './src/components/molecules';
+
 
 const Header = ({onPress, navigation, SigninColor, SignupColor, SigninColorBack, SignupColorBack}) => {
   return (

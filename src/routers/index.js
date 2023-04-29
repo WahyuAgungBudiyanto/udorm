@@ -1,35 +1,42 @@
 import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, ProfilStudent, ProfileMonitor} from '../pages';
+import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory} from '../pages';
 import {MainLoc} from '../pages/Maps';
 import {storeData, getData} from '../utils/LocalStorage';
 
 const Stack = createNativeStackNavigator();
 
-const Router = ({tokenpn}) => {
+const Router = ({tokenpn, notif}) => {
   const [user, setUser] = useState();
-  
+
   useEffect(() => {
     getData('userSession').then(data => {
-      setUser(data)
+      setUser(data);
       //console.log("data di user routes:",data);
     });
   }, []);
 
- 
   return (
     <Stack.Navigator
       initialRouteName="SplashScreen"
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="SplashScreen" component={SplashScreen} />
       {/* <Stack.Screen name="SignIn" component={SignIn} /> */}
-      <Stack.Screen name="SignIn" initialParams={{ tokenpn: tokenpn }} component={SignIn} />
+      <Stack.Screen
+        name="SignIn"
+        initialParams={{tokenpn: tokenpn}}
+        component={SignIn}
+      />
       <Stack.Screen name="SignUp" component={SignUp} />
       <Stack.Screen name="HomeStudent" component={HomeStudent} />
       <Stack.Screen name="ProfileStudent" component={ProfilStudent} />
       <Stack.Screen name="HomeMonitor" component={HomeMonitor} />
       <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
-      <Stack.Screen name="MainLoc" component={MainLoc} />
+      <Stack.Screen name="ViewAbsent" component={ViewAbsent} />
+      <Stack.Screen name="ViewHistory" component={ViewHistory} />
+      <Stack.Screen name="MainLoc">
+        {props => <MainLoc {...props} tokenpn={tokenpn} notif={notif} />}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };

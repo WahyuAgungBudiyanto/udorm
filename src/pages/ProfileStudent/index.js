@@ -152,13 +152,14 @@ const ProfilStudent = ({navigation}) => {
         <Image source={Face} style={styles.faceIcon} />
         <View
           style={{
-            width: 200,
-            height: 220,
+            width: 300,
+            height: 250,
             backgroundColor: '#7BC9DE',
             alignSelf: 'center',
             borderRadius: 50,
             width: width * 0.8,
             marginTop: 20,
+            overflow: 'hidden',
           }}>
           <Label
             title="Information"
@@ -166,27 +167,53 @@ const ProfilStudent = ({navigation}) => {
             textSize={30}
             mT={20}
             mL={20}></Label>
-            <View style={{flexDirection: 'row'}}>
-            <Label title="Email: " textColor="#FFFF" textSize={15} mL={20}></Label>
-          <Text style={{color: 'white', top: 1}}>{`${email}`}</Text>
+          <View style={{flexDirection: 'row'}}>
+            <Label
+              title="Email: "
+              textColor="#FFFF"
+              textSize={15}
+              mL={20}></Label>
+            <Text style={{color: 'white', top: 1}}>{`${email}`}</Text>
           </View>
           <View style={{flexDirection: 'row'}}>
-            <Label title="Gender: " textColor="#FFFF" textSize={15} mL={20}></Label>
-          <Text style={{color: 'white', top: 1}}>{`${gender}`}</Text>
-          </View>
-           <View style={{flexDirection: 'row'}}>
-            <Label title="Faculty: " textColor="#FFFF" textSize={15} mL={20}></Label>
-          <Text style={{color: 'white', top: 1}}>{`${faculty}`}</Text>
+            <Label
+              title="Gender: "
+              textColor="#FFFF"
+              textSize={15}
+              mL={20}></Label>
+            <Text style={{color: 'white', top: 1}}>{`${gender}`}</Text>
           </View>
           <View style={{flexDirection: 'row'}}>
-            <Label title="Parents Number: " textColor="#FFFF" textSize={15} mL={20}></Label>
-          <Text style={{color: 'white', top: 1}}>{`${parentNumber}`}</Text>
+            <Label
+              title="Faculty: "
+              textColor="#FFFF"
+              textSize={15}
+              mL={20}></Label>
+            <Text style={{color: 'white', top: 1}}>{`${faculty}`}</Text>
           </View>
-          <Label title="Points" textColor="#FFFF" textSize={30} tALight='center' mT={5} ></Label>
-          <Text style={{color: 'white', fontSize:30, textAlign:'center', fontWeight:'bold'}}>{`${totalPoints}`}</Text>
+          <View style={{flexDirection: 'row'}}>
+            <Label
+              title="Parents Number: "
+              textColor="#FFFF"
+              textSize={15}
+              mL={20}></Label>
+            <Text style={{color: 'white', top: 1}}>{`${parentNumber}`}</Text>
+          </View>
+          <Label
+            title="Points"
+            textColor="#FFFF"
+            textSize={30}
+            tALight="center"
+            mT={5}></Label>
+          <Text
+            style={{
+              color: 'white',
+              fontSize: 30,
+              textAlign: 'center',
+              fontWeight: 'bold',
+            }}>{`${totalPoints}`}</Text>
         </View>
       </ScrollView>
-      <Text>ProfilStudent</Text>
     </View>
   );
 }

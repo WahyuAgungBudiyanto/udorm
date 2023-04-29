@@ -13,16 +13,19 @@ import ChapelCoordinate from '../ChapelCoordinate';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
 import authentication, {db} from '../../../config/firebase-config';
 const {width, height} = Dimensions.get('window');
+import {getSheetData} from '../../../config/GoogleSheetsAPI';
+import PushNotification from 'react-native-push-notification';
 
-const MainLoc = ({navigation}) => {
+
+const MainLoc = ({navigation, notif}) => {
   const handleButtonPress = () => {
-  if (userType === 'Monitor') {
-    navigation.navigate('HomeMonitor');
-  } else if (userType === 'Student') {
-    navigation.navigate('HomeStudent');
-  }
+    if (userType === 'Monitor') {
+      navigation.navigate('HomeMonitor');
+    } else if (userType === 'Student') {
+      navigation.navigate('HomeStudent');
+    }
     console.log('Button pressed');
-  };  
+  };
 
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
@@ -37,10 +40,9 @@ const MainLoc = ({navigation}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
   const [sheetDBAPI, setSheetDBAPI] = useState('');
-  const [absenNow, setAbsenNow] = useState(false)
+  const [absenNow, setAbsenNow] = useState(false);
   const [lastNotif, setlastNotif] = useState(false);
   const [date, setDate] = useState(new Date());
-
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -62,16 +64,15 @@ const MainLoc = ({navigation}) => {
     return null;
   };
 
-
   const fetchTokenpn = () => {
     const studentTypeRef = r(db, `Student`);
     onValue(
       studentTypeRef,
       snapshot => {
         //console.log("snapshot tokenpn:",snapshot.val());
-        let tempArray =[]
+        let tempArray = [];
         for (const key in snapshot.val()) {
-            tempArray.push(snapshot.val()[key].tokenpn)
+          tempArray.push(snapshot.val()[key].tokenpn);
           // console.log(`${snapshot.val()[key].tokenpn}`);
         }
         setStudentToken(tempArray);
@@ -100,7 +101,10 @@ const MainLoc = ({navigation}) => {
   };
 
   const fetchAbsentType = () => {
-    const MonitorTypeRef = r(db, `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`);
+    const MonitorTypeRef = r(
+      db,
+      `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`,
+    );
     onValue(
       MonitorTypeRef,
       snapshot => {
@@ -145,7 +149,6 @@ const MainLoc = ({navigation}) => {
     //console.log(absentType);
   }, [absentType]);
 
-
   const updateUserLocation = (location, inside) => {
     update(r(db, `Student/${uid}/Location`), {
       latitude: location.latitude,
@@ -154,38 +157,34 @@ const MainLoc = ({navigation}) => {
     });
   };
 
-const getCurrentLocation = inside => {
-  if (userType === 'Monitor') {
-    return;
-  }
+  const getCurrentLocation = inside => {
+    if (userType === 'Monitor') {
+      return;
+    }
 
-  Geolocation.getCurrentPosition(
-    position => {
-      const location = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-      updateUserLocation(location, inside);
-    },
-    error => {
-      // Handle errors here
-    },
-    {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
-  );
-};
-
+    Geolocation.getCurrentPosition(
+      position => {
+        const location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        updateUserLocation(location, inside);
+      },
+      error => {
+        // Handle errors here
+      },
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+    );
+  };
 
   useEffect(() => {
     if (uid) {
       (async () => {
         const type = await checkUserType(uid);
         setUserType(type);
-        
-     
-    })();
+      })();
 
       fetchStudentType();
-      
 
       if (userType !== 'Monitor') {
         const locationUpdateInterval = setInterval(() => {
@@ -229,9 +228,6 @@ const getCurrentLocation = inside => {
     }
   }, [uid, inside, userType]);
 
-
-
-
   useEffect(() => {
     async function requestLocationPermission() {
       try {
@@ -274,17 +270,15 @@ const getCurrentLocation = inside => {
   }, []);
 
   useEffect(() => {
-  
     setMonitorCoordinate({
       latitude: 1.4174552420479594, // Your fixed latitude value,
       longitude: 124.98335068219275, // Your fixed longitude value,
     });
- 
-}, [userType]);
+  }, [userType]);
 
-const focusOnMonitor = () => {
-  // Return immediately if the user is not a Monitor
- 
+  const focusOnMonitor = () => {
+    // Return immediately if the user is not a Monitor
+
     if (mapRef && initialRegion) {
       mapRef.animateToRegion(
         {
@@ -295,138 +289,102 @@ const focusOnMonitor = () => {
         },
         2000,
       );
-   
-  }
+    }
 
-  if (mapRef && monitorCoordinate) {
-    mapRef.animateToRegion(
-      {
+    if (mapRef && monitorCoordinate) {
+      mapRef.animateToRegion(
+        {
+          latitude: monitorCoordinate.latitude,
+          longitude: monitorCoordinate.longitude,
+          latitudeDelta: 0.0036,
+          longitudeDelta: 0.0036,
+        },
+        2000,
+      );
+    }
+  };
+
+  useEffect(() => {
+    focusOnMonitor();
+  }, [monitorCoordinate, mapRef, userType]);
+
+  const onMapReady = () => {
+    setMapReady(true);
+    if (userType === 'Monitor') {
+      setInitialRegion({
         latitude: monitorCoordinate.latitude,
         longitude: monitorCoordinate.longitude,
-        latitudeDelta: 0.0036,
-        longitudeDelta: 0.0036,
-      },
-      2000,
-    );
-  }
-};
-
-useEffect(() => {
-  focusOnMonitor();
-}, [monitorCoordinate, mapRef, userType]);
-
-
-
-const onMapReady = () => {
-  setMapReady(true);
-  if (userType === 'Monitor') {
-    setInitialRegion({
-      latitude: monitorCoordinate.latitude,
-      longitude: monitorCoordinate.longitude,
-      latitudeDelta: 0.001,
-      longitudeDelta: 0.001,
-    });
-  } else {
-    mapRef.animateToRegion(initialRegion, 2000);
-  }
-  focusOnMonitor();
-};
-
-
-
-
-
-const incrementPointsForAbsentStudents = async studentsInsideStatus => {
-  setIsLoading(true); // Set loading state to true
-
-  for (const studentUid in studentsInsideStatus) {
-    if (!studentsInsideStatus[studentUid]) {
-      const pointsRef = r(db, `Student/${studentUid}/points`);
-      const pointsSnapshot = await get(pointsRef);
-      const currentPoints = pointsSnapshot.exists()
-        ? Number(pointsSnapshot.val()) // Convert the value to a number
-        : 0;
-      const newPoints = currentPoints + 1;
-      await update(r(db, `Student/${studentUid}`), {points: newPoints});
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
+      });
+    } else {
+      mapRef.animateToRegion(initialRegion, 2000);
     }
-  }
+    focusOnMonitor();
+  };
 
-  setIsLoading(false); // Set loading state to false
-  Alert.alert('Done', 'Points updated for all absent students');
-  resetStudentLocations();
-};
+  const incrementPointsForAbsentStudents = async studentsInsideStatus => {
+    setIsLoading(true); // Set loading state to true
 
-
-const checkAllStudentsInsideStatus = async () => {
-  const studentsRef = r(db, 'Student');
-  const studentsSnapshot = await get(studentsRef);
-
-  if (studentsSnapshot.exists()) {
-    const studentsData = studentsSnapshot.val();
-    const insideStatuses = {};
-
-    for (const studentUid in studentsData) {
-      const inside = studentsData[studentUid]?.Location?.inside;
-      insideStatuses[studentUid] = inside;
+    for (const studentUid in studentsInsideStatus) {
+      if (!studentsInsideStatus[studentUid]) {
+        const pointsRef = r(db, `Student/${studentUid}/points`);
+        const pointsSnapshot = await get(pointsRef);
+        const currentPoints = pointsSnapshot.exists()
+          ? Number(pointsSnapshot.val()) // Convert the value to a number
+          : 0;
+        const newPoints = currentPoints + 1;
+        await update(r(db, `Student/${studentUid}`), {points: newPoints});
+      }
     }
 
-    return {insideStatuses, studentsData};
-  } else {
-    return null;
-  }
-};
+    setIsLoading(false); // Set loading state to false
+    Alert.alert('Done', 'Points updated for all absent students');
+    resetStudentLocations();
+  };
 
- useEffect(() => {
-   const timer = setInterval(() => {
-     setDate(new Date());
-   }, 1000);
+  const checkAllStudentsInsideStatus = async () => {
+    const studentsRef = r(db, 'Student');
+    const studentsSnapshot = await get(studentsRef);
 
-   return () => {
-     clearInterval(timer);
-   };
- }, []);
+    if (studentsSnapshot.exists()) {
+      const studentsData = studentsSnapshot.val();
+      const insideStatuses = {};
 
- const formattedDate = new Intl.DateTimeFormat('en-US', {
-   day: '2-digit',
-   month: 'long',
-   year: 'numeric',
-   hour: '2-digit',
-   minute: '2-digit',
-   second: '2-digit',
-   hour12: true,
- }).format(date);
+      for (const studentUid in studentsData) {
+        const inside = studentsData[studentUid]?.Location?.inside;
+        insideStatuses[studentUid] = inside;
+      }
+
+      return {insideStatuses, studentsData};
+    } else {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDate(new Date());
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+
 
 
 const sendNotification = () => {
-  const headers = {
-    'Authorization': 'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
-    'Content-Type': 'application/json'
-  };
-
-  const data = {
-    // registration_ids: [
-    //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
-    //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
-    // ],
-    registration_ids: studentToken,
-    priority: 'high',
-    notification: {
-      title: 'siap siap absen',
-      body: 'siap buka hp',
-      sound: 'default'
-    }
-  };
-
-  fetch('https://fcm.googleapis.com/fcm/send', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(data)
-  })
-    .then(response => console.log(response))
-    .catch(error => console.error(""));
-};
-
-const sendLastNotif = () => {
   const headers = {
     Authorization:
       'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
@@ -441,8 +399,8 @@ const sendLastNotif = () => {
     registration_ids: studentToken,
     priority: 'high',
     notification: {
-      title: 'absen selesai',
-      body: 'makasih',
+      title: 'ABSENT AKAN DIMULAI',
+      body: 'PASTIKAN ANDA BERAPA DI GOOGLE MAPS APLIKASI',
       sound: 'default',
     },
   };
@@ -453,9 +411,39 @@ const sendLastNotif = () => {
     body: JSON.stringify(data),
   })
     .then(response => console.log(response))
-    .catch(error => console.error(''));
+    .catch(error => console.error(error));
 };
 
+  const sendLastNotif = () => {
+    const headers = {
+      Authorization:
+        'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
+      'Content-Type': 'application/json',
+    };
+
+    const data = {
+      // registration_ids: [
+      //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
+      //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
+      // ],
+      registration_ids: studentToken,
+      priority: 'high',
+      content_available: true,
+      notification: {
+        title: 'ABSEN TELAH SELESAI',
+        body: 'TERIMA KASIH',
+        sound: 'default',
+      },
+    };
+
+    fetch('https://fcm.googleapis.com/fcm/send', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data),
+    })
+      .then(response => console.log(response))
+      .catch(error => console.error(''));
+  };
 
 const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
@@ -468,30 +456,33 @@ const handleAbsentNowPress = async () => {
   const {insideStatuses: allStudentsInsideStatus, studentsData} = result;
   console.log('Inside statuses for all students:', allStudentsInsideStatus);
 
-  // Filter students with inside = false
-  const absentStudents = Object.keys(allStudentsInsideStatus)
-    .filter(studentUid => !allStudentsInsideStatus[studentUid])
-    .map(studentUid => ({
-      uid: studentUid,
-      Email: studentsData[studentUid].Email.substring(
-        0,
-        studentsData[studentUid].Email.indexOf('@'),
-      ),
-      Name: studentsData[studentUid].Name,
-      Parent: studentsData[studentUid].Parent,
-      Location: studentsData[studentUid].Location,
-    }));
-
-  const absentPhoneNumbersAndNames = absentStudents.map(student => {
+  // Updated the absentData mapping to include locationStatus
+  const absentData = Object.keys(allStudentsInsideStatus).map(studentUid => {
+    const isAbsent = !allStudentsInsideStatus[studentUid];
+    const locationStatus = isAbsent ? 'outside' : 'inside';
     return {
-      name: student.Name,
-      phoneNumber: student.Parent,
+      NO: 'INCREMENT',
+      DATE: formattedDate,
+      NOREGIS: studentsData[studentUid].Email.split('@')[0],
+      NAME: studentsData[studentUid].Name,
+      ABSENT: locationStatus,
+      PLACE: absentType,
     };
   });
 
+  console.log(absentData);
+
+  // Updated to filter only absent students and map to phone numbers and names
+  const absentPhoneNumbersAndNames = Object.keys(allStudentsInsideStatus)
+    .filter(studentUid => !allStudentsInsideStatus[studentUid])
+    .map(studentUid => ({
+      name: studentsData[studentUid].Name,
+      phoneNumber: studentsData[studentUid].Parent,
+    }));
+
   //console.log(absentPhoneNumbersAndNames);
 
-  const url = 'http://217.195.197.235:5000/send-message';
+  const url = 'http://217.195.197.57:5000/send-message';
 
   absentPhoneNumbersAndNames.forEach(async studentInfo => {
     const body = {
@@ -516,28 +507,9 @@ const handleAbsentNowPress = async () => {
       const jsonResponse = await response.json();
       console.log(jsonResponse);
     } catch (error) {
-      //console.error('There was a problem with the fetch operation:', error);
+      console.error('There was a problem with the fetch operation:', error);
     }
   });
-
-  // Create an array of objects containing the absent student's name, and current datetime
-  const absentData = absentStudents.map(student => {
-    return {
-      NO: 'INCREMENT',
-      DATE: formattedDate,
-      NOREGIS: student.Email,
-      NAME: student.Name,
-      ABSENT: absentType,
-    };
-  });
-
-  console.log(absentData);
-
-  // Convert absentPhoneNumbersAndNames array to JSON string
-  const saveAbsent = JSON.stringify(absentData);
-
-  // Save JSON string to local storage
-  localStorage.setItem('absentData', saveAbsent);
 
   // Send data to SheetDB using a POST request for each absent student
   for (const data of absentData) {
@@ -605,41 +577,36 @@ const handleAbsentNowPress = async () => {
   setlastNotif(true);
 };
 
-const handleNotifyStudent = async () => {
-  sendNotification();
-  setAbsenNow(true);
-};
+  const handleNotifyStudent = async () => {
+    sendNotification();
+    setAbsenNow(true);
+  };
 
+  const handleLastNotif = async () => {
+    sendLastNotif();
 
+    navigation.navigate('HomeMonitor');
+  };
 
-const handleLastNotif = async () => {
-  sendLastNotif();
-  
-  navigation.navigate('HomeMonitor'); 
-};
+  const resetStudentLocations = async () => {
+    const db = getDatabase();
+    const userType = await checkUserType(uid);
 
-
-const resetStudentLocations = async () => {
-  const db = getDatabase();
-  const userType = await checkUserType(uid);
-
-  if (userType === 'Monitor') {
-    const studentRef = r(db, 'Student'); // Define the studentRef variable here
-    const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
-    snapshot.forEach(childSnapshot => {
-      const studentUID = childSnapshot.key;
-      update(r(db, `Student/${studentUID}/Location`), {
-        latitude: 0,
-        longitude: 0,
-        inside: false,
+    if (userType === 'Monitor') {
+      const studentRef = r(db, 'Student'); // Define the studentRef variable here
+      const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
+      snapshot.forEach(childSnapshot => {
+        const studentUID = childSnapshot.key;
+        update(r(db, `Student/${studentUID}/Location`), {
+          latitude: 0,
+          longitude: 0,
+          inside: false,
+        });
       });
-    });
-  } else {
-    console.log('User is not a Monitor');
-  }
-};
-
-
+    } else {
+      console.log('User is not a Monitor');
+    }
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -728,7 +695,7 @@ const resetStudentLocations = async () => {
                   title={`Student ${location.uid}`}>
                   <Image
                     style={{width: 15, height: 15}}
-                    source={require('../../../assets/images/face.png')}
+                    source={require('../../../assets/images/studentFace.png')}
                   />
                 </Marker>
               ))}
@@ -742,7 +709,7 @@ const resetStudentLocations = async () => {
           {opacity: pressed ? 0.5 : 1},
         ]}
         onPress={handleButtonPress}>
-        <Text style={styles.buttonText}>Back</Text>
+        <Text style={styles.buttonText}>Back </Text>
       </Pressable>
       {(userType === 'Monitor' || userType === 'Student') && (
         <Pressable
@@ -839,7 +806,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     alignSelf:'center',
-    paddingHorizontal: width * 0.03,
+    paddingHorizontal: width * 0.1,
     paddingVertical: 5,
     borderRadius: 5,
   },

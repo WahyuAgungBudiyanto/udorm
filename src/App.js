@@ -1,52 +1,50 @@
-import { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import {Alert} from 'react-native';
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import Router from './routers';
 import NotifService from './notification-setup/NotifService';
-import { storeData } from './utils/LocalStorage';
+import {storeData} from './utils/LocalStorage';
 
 const App = () => {
-  const [ registerToken, setRegisterToken] = useState('');
-  const [fcmRegistered, setFcmRegistered ] = useState(false);
+  const [registerToken, setRegisterToken] = useState('');
+  const [fcmRegistered, setFcmRegistered] = useState(false);
 
-    const onRegister = (token) =>{
-      console.log("token on register:",token.token);
-      setRegisterToken(token.token)
-      setFcmRegistered(true)
+  const onRegister = token => {
+    console.log('token on register:', token.token);
+    setRegisterToken(token.token);
+    setFcmRegistered(true);
+  };
+
+  const onNotif = notif => {
+    Alert.alert(notif.title, notif.message);
+  };
+
+  // const notif = new NotifService(onRegister, onNotif);
+
+  useEffect(() => {
+    new NotifService(onRegister, onNotif);
+    if (registerToken.length !== 0) {
+      storeData('tokenpn', registerToken);
     }
+  }, [registerToken]);
 
-    const onNotif = (notif) =>{
-      Alert.alert(notif.title, notif.message)
-    }
-
-    // const notif = new NotifService(onRegister, onNotif);
-
-    useEffect(() => {
-      new NotifService(onRegister, onNotif);
-      if(registerToken.length !== 0){
-        storeData('tokenpn',registerToken );
-      }
-    }, [registerToken])
-    
   return (
     <NavigationContainer>
-      <Router tokenpn={registerToken}/>
+      <Router tokenpn={(registerToken, onNotif)} />
     </NavigationContainer>
   );
 };
 
 export default App;
-
-
 // // ini code push notification
 // import React, {useState} from 'react';
-// import { 
-//   TextInput, 
-//   StyleSheet, 
-//   Text, 
-//   View, 
-//   TouchableOpacity, 
+// import {
+//   TextInput,
+//   StyleSheet,
+//   Text,
+//   View,
+//   TouchableOpacity,
 //   Alert,
 //   ScrollView
 // } from 'react-native';
@@ -68,7 +66,7 @@ export default App;
 //     }
 
 //     const notif = new NotifService(onRegister, onNotif);
-    
+
 //     const handlePerm = (perms) =>{
 //       Alert.alert('Permissions', JSON.stringify(perms))
 //     }
@@ -220,7 +218,7 @@ export default App;
 //     borderColor: '#AAAAAA',
 //     margin: 5,
 //     padding: 5,
-//     width: 300, 
+//     width: 300,
 //     height: 200
 //   },
 //   spacer: {

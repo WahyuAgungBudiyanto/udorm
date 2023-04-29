@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView, Image, Alert} from 'react-native';
-import {Logo} from '../../assets/images';
+import {Logo} from '../../assets/icons';
 import RadioButtonsGroup from 'react-native-radio-buttons-group';
 import {Header, Button, TextInput, Gap, Label, CustomTextInput} from '../../components';
 import authentication,{db} from '../../config/firebase-config'
+import {Picker} from '@react-native-picker/picker';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {ref as r, getDatabase, child, get, update} from 'firebase/database';
 import {storeData} from '../../utils/LocalStorage';
@@ -63,8 +64,9 @@ const SignUp = ({navigation}) => {
         SigninColorBack="#FFFF"
         SignupColorBack="#7BC9DE"
       />
+      <Gap height={10} />
       <View style={styles.logoContainer}>
-        <Image source={Logo} style={styles.logo} />
+        <Logo width={400} height={80} />
       </View>
 
       <Gap height={1} />
@@ -168,7 +170,11 @@ const SignUp = ({navigation}) => {
             onValueChange={(itemValue, itemIndex) => setGender(itemValue)}
             dropdownIconColor="#7BC9DE">
             <Picker.Item label="Male" value="Male" style={styles.pickerItem} />
-            <Picker.Item label="Female" value="Female" style={styles.pickerItem} />
+            <Picker.Item
+              label="Female"
+              value="Female"
+              style={styles.pickerItem}
+            />
           </Picker>
         </View>
       </View>
