@@ -57,7 +57,7 @@ const ViewAbsent = ({navigation}) => {
           },
         );
 
-        // Cleanup function to remove the listener when the component is unmounted
+        // Cleanup function to remove the istener when the component is unmounted
         return () => off(studentsRef, 'value', onValueChange);
       };
 
