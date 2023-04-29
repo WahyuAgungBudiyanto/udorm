@@ -31,7 +31,7 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <Router tokenpn={(registerToken, onNotif)} />
+      <Router tokenpn={registerToken} />
     </NavigationContainer>
   );
 };
