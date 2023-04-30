@@ -6,31 +6,22 @@ export default class NotifService {
     this.lastId = 0;
     this.lastChannelCounter = 0;
 
-    NotificationHandler.attachRegister(onRegister);
-    NotificationHandler.attachNotification(this.handleNotification);
+    this.createDefaultChannels();
 
-    PushNotification.getApplicationIconBadgeNumber(number => {
+    NotificationHandler.attachRegister(onRegister);
+    NotificationHandler.attachNotification(onNotification);
+
+    // Clear badge number at start
+    PushNotification.getApplicationIconBadgeNumber(function (number) {
       if (number > 0) {
         PushNotification.setApplicationIconBadgeNumber(0);
       }
     });
+
+    PushNotification.getChannels(function (channels) {
+      console.log(channels);
+    });
   }
-  handleNotification = notification => {
-    // Display the notification in your own UI
-    Alert.alert(
-      notification.title,
-      notification.message,
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            // Handle user interaction with the notification
-          },
-        },
-      ],
-      {cancelable: false},
-    );
-  };
 
   createDefaultChannels() {
     PushNotification.createChannel(

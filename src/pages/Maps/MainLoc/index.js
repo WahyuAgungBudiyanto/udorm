@@ -1,4 +1,4 @@
-import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Dimensions  } from 'react-native';
+import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Dimensions   } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -398,6 +398,7 @@ const sendNotification = () => {
     // ],
     registration_ids: studentToken,
     priority: 'high',
+    content_available: true,
     notification: {
       title: 'ABSENT AKAN DIMULAI',
       body: 'PASTIKAN ANDA BERAPA DI GOOGLE MAPS APLIKASI',
