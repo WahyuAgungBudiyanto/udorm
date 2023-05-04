@@ -15,16 +15,16 @@ const checkUserType = async uid => {
   const monitorRef = r(db, `Monitor/${uid}`);
   const monitorSnapshot = await get(monitorRef);
   if (monitorSnapshot.exists()) {
-    return 'Monitor';
+    return {userType: 'Monitor'};
   }
 
   // Check if the user exists in the Student section
   const studentRef = r(db, `Student/${uid}`);
   const studentSnapshot = await get(studentRef);
   if (studentSnapshot.exists()) {
-    return 'Student';
+    return {userType: 'Student', userStatus: studentSnapshot.val().approve};
   }
-  
+
   return null;
 };
 
@@ -65,7 +65,19 @@ const SignIn = ({navigation, route}) => {
           console.log(re);
           const uid = re.user.uid;
           const email = re.user.email;
-          const userType = await checkUserType(uid);
+
+          // Get userType and userStatus from checkUserType
+          const {userType, userStatus} = await checkUserType(uid);
+
+          // Check if userStatus is 'pending' or 'denied' for Students only
+          if (userType === 'Student' && (userStatus === 'pending')) {
+            Alert.alert('Alert!', 'Your account is not approved yet.');
+            return;
+          }else if (userType === 'Student' && userStatus === 'denied') {
+            Alert.alert('Alert!', 'Your account is denied.');
+            return;
+          }
+
           storeData('userSession', {uid, email, password, userType});
           // Assuming `tokenpn` is a variable containing the value you want to save
 

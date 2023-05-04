@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory} from '../pages';
+import {SignIn, SignUp, HomeStudent, HomeMonitor, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory, Approve} from '../pages';
 import {MainLoc} from '../pages/Maps';
 import {storeData, getData} from '../utils/LocalStorage';
 
@@ -34,6 +34,7 @@ const Router = ({tokenpn, notif}) => {
       <Stack.Screen name="ProfileMonitor" component={ProfileMonitor} />
       <Stack.Screen name="ViewAbsent" component={ViewAbsent} />
       <Stack.Screen name="ViewHistory" component={ViewHistory} />
+      <Stack.Screen name="Approve" component={Approve} />
       <Stack.Screen name="MainLoc">
         {props => <MainLoc {...props} tokenpn={tokenpn} notif={notif} />}
       </Stack.Screen>

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {StyleSheet, View, TouchableOpacity, ScrollView, Modal, Text, BackHandler, Linking, Image, Dimensions } from 'react-native';
 import { Label, Gap} from '../../components';
-import { BackHome, NotifIcon, mainBackground, LogoAbsentBtn, HistoryIcon, Info, Image1, Image2} from '../../assets/images';
+import { BackHome, NotifIcon, mainBackground, LogoAbsentBtn, HistoryIcon, Info, Image1, Image2, Approve} from '../../assets/images';
 import {HomeLogo, profileLogo, LogoutLogo} from '../../assets/icons';
 import authentication, {db} from '../../config/firebase-config';
 import {signOut} from 'firebase/auth';
@@ -187,6 +187,9 @@ const goHome = () => {
 const goNotif = () => {
   navigation.navigate('ViewHistory');
 };
+const goApprove = () => {
+  navigation.navigate('Approve');
+};
   const goHistory = () => {
     // Linking.openURL();
     navigation.navigate('ViewAbsent');
@@ -298,7 +301,7 @@ return (
       <View
         style={{
           width: 200,
-          height: 200,
+          height: 300,
           backgroundColor: '#7BC9DE',
           alignSelf: 'center',
           borderRadius: 50,
@@ -306,9 +309,9 @@ return (
           marginTop: 20,
           justifyContent: 'center',
         }}>
-        <View style={{flexDirection: 'row'}}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-evenly'}}>
           <TouchableOpacity
-            style={{marginBottom: 10, paddingLeft: 50}}
+            style={{marginBottom: 10}}
             onPress={() => setShowModal(true)}>
             <LogoAbsentBtn width={90} height={80} />
             <Label
@@ -318,26 +321,29 @@ return (
               textColor="#FFFF"
               textSize={20}></Label>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={{marginBottom: 10, paddingLeft: 40}}
-            onPress={goHistory}>
+          <TouchableOpacity style={{marginBottom: 10}} onPress={goHistory}>
             <HistoryIcon width={80} height={80} />
-            {/* <Image source={HistoryIcon} style={styles.absentBtn} /> */}
             <Label
               title="View Student"
               jContent="center"
               tALight="center"
               textColor="#FFFF"
               textSize={20}></Label>
-            {/* {sheetData.map((row, index) => (
-              <Text style={{color: 'black'}} key={index}>
-                {row.join(', ')}
-              </Text>
-            ))} */}
           </TouchableOpacity>
         </View>
-        {/* <Button title="Maps" color="#7BC9DE" textColor="white" onPress={mapsGo}><Image source={LogoAbsentBtn} style={styles.absentBtn} /></Button> */}
+        <View style={{alignItems: 'center'}}>
+          <TouchableOpacity style={{marginBottom: 10}} onPress={goApprove}>
+            <Approve width={80} height={80} />
+            <Label
+              title="Approve"
+              jContent="center"
+              tALight="center"
+              textColor="#FFFF"
+              textSize={20}></Label>
+          </TouchableOpacity>
+        </View>
       </View>
+
       <View
         style={{
           width: '100%',

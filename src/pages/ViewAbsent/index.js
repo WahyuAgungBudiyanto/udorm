@@ -19,7 +19,6 @@ import {signOut} from 'firebase/auth';
 import {getData, removeData} from '../../utils/LocalStorage';
 import { query, orderByChild, equalTo, get, ref, update, getDatabase, onValue } from 'firebase/database';
 import {TextInput, DataTable, Provider as PaperProvider, DefaultTheme} from 'react-native-paper';
-import {LogoAbsentBtn} from '../../assets/images';
 const {width, height} = Dimensions.get('window');
 const theme = {
   ...DefaultTheme,

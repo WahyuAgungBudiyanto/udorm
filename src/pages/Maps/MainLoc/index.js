@@ -460,7 +460,7 @@ const handleAbsentNowPress = async () => {
   // Updated the absentData mapping to include locationStatus
   const absentData = Object.keys(allStudentsInsideStatus).map(studentUid => {
     const isAbsent = !allStudentsInsideStatus[studentUid];
-    const locationStatus = isAbsent ? 'outside' : 'inside';
+    const locationStatus = isAbsent ? 'tidak hadir' : 'hadir';
     return {
       NO: 'INCREMENT',
       DATE: formattedDate,
@@ -488,7 +488,7 @@ const handleAbsentNowPress = async () => {
   absentPhoneNumbersAndNames.forEach(async studentInfo => {
     const body = {
       wa_numbers: [studentInfo.phoneNumber],
-      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di ${absentType}. Point telah ditambahkan. `,
+      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di ${absentType}. Point telah ditambahkan. \n\nHello ${studentInfo.name} parents, Your child did not attend the absence that was in ${absentType}. Points has been added.`,
     };
 
     // Send a POST request with the absent student's phone number

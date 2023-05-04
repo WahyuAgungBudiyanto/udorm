@@ -10,5 +10,6 @@ import ProfilStudent from './ProfileStudent';
 import ProfileMonitor from './ProfileMonitor';
 import ViewAbsent from './ViewAbsent';
 import ViewHistory from './ViewHIstory';
+import Approve from './Approve'
 
-export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory};
+export {SignIn, SignUp, HomeStudent, HomeMonitor, Maps, Background, SplashScreen, ProfilStudent, ProfileMonitor, ViewAbsent, ViewHistory, Approve};

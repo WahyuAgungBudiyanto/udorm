@@ -37,7 +37,8 @@ const SignUp = ({navigation}) => {
           Faculty: Faculty,
           Location: '',
           points: 0,
-          tokenpn: ''
+          tokenpn: '',
+          approve: 'pending'
         });
         const data = {
           uid: re.user.uid,

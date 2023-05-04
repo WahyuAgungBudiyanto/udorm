@@ -232,7 +232,7 @@ const renderItem = ({item, index}) => {
       <View style={styles.notificationRow}>
         {/* <Text style={styles.notificationColumnLeft}>{item[0]}</Text> */}
         <Text style={styles.notificationColumnMiddle}>
-          {item[3] + ' is ' + item[4] + ' the ' + item[5]}
+          {item[3] + ' ' + item[4] + ' di ' + item[5]}
         </Text>
       </View>
       <Text style={styles.notificationTimestamp}>
