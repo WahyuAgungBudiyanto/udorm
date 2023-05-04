@@ -1,13 +1,13 @@
 import {StyleSheet, View, TouchableOpacity, Image, Alert} from 'react-native';
-import {React, useState, useEffect} from 'react';
+import {React, useState, useEffect, useRef} from 'react';
 import {Header, Button, Gap, Label, TextInput, CustomTextInput} from '../../components';
-import {Logo} from '../../assets/images';
+import {Logo} from '../../assets/icons';
 import {Picker} from '@react-native-picker/picker';
 import authentication from '../../config/firebase-config'
 import {signInWithEmailAndPassword} from 'firebase/auth';
-import {getDatabase, ref as r, get, set} from 'firebase/database';
+import {getDatabase, ref as r, get, set, update} from 'firebase/database';
 import {storeData, getData} from '../../utils/LocalStorage';
-
+import PushNotification from 'react-native-push-notification';
 const checkUserType = async uid => {
   const db = getDatabase();
 
@@ -15,80 +15,133 @@ const checkUserType = async uid => {
   const monitorRef = r(db, `Monitor/${uid}`);
   const monitorSnapshot = await get(monitorRef);
   if (monitorSnapshot.exists()) {
-    return 'Monitor';
+    return {userType: 'Monitor'};
   }
 
   // Check if the user exists in the Student section
   const studentRef = r(db, `Student/${uid}`);
   const studentSnapshot = await get(studentRef);
   if (studentSnapshot.exists()) {
-    return 'Student';
+    return {userType: 'Student', userStatus: studentSnapshot.val().approve};
   }
-  
+
   return null;
 };
 
 const SignIn = ({navigation, route}) => {
-
   const [selectedValue, setSelectedValue] = useState('Student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tokenpn, setTokenpn] = useState('');
 
   const db = getDatabase();
-  function postToken(uid) {
-    const studentRef = r(db, `Student/${uid}/tokenpn`);
-    set(studentRef,tokenpn)
+
+
+  const postToken = async uid => {
+    const studentRef = r(db, `Student/${uid}`);
+    update(studentRef, {tokenpn: tokenpn})
       .then(() => {
-        //console.log("Token updated successfully!");
-      })
-      .catch((error) => {
-        console.error("Error updating token: ", error);
-      });
-  }
-
-  const Login = async () => {
-    const emails = `${email}${selectedValue === 'monitor' ? '@monitor.unklab.ac.id' : '@student.unklab.ac.id'}`;
-    if (!email || !password) {
-      // Show error message to the user
-      alert('Please enter your email and password');
-      return;
-    }
-    signInWithEmailAndPassword(authentication, emails, password)
-      .then(async re => {
-        console.log(re);
-        const uid = re.user.uid;
-        const email = re.user.email;
-        const userType = await checkUserType(uid);
-        storeData('userSession', {uid, email, password, userType});
-
-        if (userType && userType.toLowerCase() === selectedValue.toLowerCase()) {
-          if(userType == 'Student'){
-            postToken(uid)
-          }
-          // Show the success alert
-          alert('You are now logged in');
-          // Delay the navigation to the appropriate home screen
-          setTimeout(() => {
-            if (userType === 'Monitor') {
-              navigation.replace('HomeMonitor');
-            } else if (userType === 'Student') {
-              navigation.replace('HomeStudent');
-            }
-          }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
-        } else {
-          Alert.alert('Error!', 'Invalid user type');
-        }
+        console.log('Token updated successfully!');
       })
       .catch(error => {
-        Alert.alert('Alert!', error.message);
-        console.log('Error:', error.message);
+        console.error('Error updating token: ', error);
       });
   };
- 
+
+  const Login = async () => {
+    if (tokenpn) {
+      const emails = `${email}${
+        selectedValue === 'monitor'
+          ? '@monitor.unklab.ac.id'
+          : '@student.unklab.ac.id'
+      }`;
+      if (!email || !password) {
+        // Show error message to the user
+        alert('Please enter your email and password');
+        return;
+      }
+      signInWithEmailAndPassword(authentication, emails, password)
+        .then(async re => {
+          console.log(re);
+          const uid = re.user.uid;
+          const email = re.user.email;
+
+          // Get userType and userStatus from checkUserType
+          const {userType, userStatus} = await checkUserType(uid);
+
+          // Check if userStatus is 'pending' or 'denied' for Students only
+          if (userType === 'Student' && (userStatus === 'pending')) {
+            Alert.alert('Alert!', 'Your account is not approved yet.');
+            return;
+          }else if (userType === 'Student' && userStatus === 'denied') {
+            Alert.alert('Alert!', 'Your account is denied.');
+            return;
+          }
+
+          storeData('userSession', {uid, email, password, userType});
+          // Assuming `tokenpn` is a variable containing the value you want to save
+
+          let studentRef;
+          if (userType == 'Student') {
+            studentRef = r(db, `Student/${uid}`);
+          } else {
+            studentRef = r(db, `Monitor/${uid}`);
+          }
+          update(studentRef, {tokenpn: tokenpn})
+            .then(() => {
+              console.log('Token updated successfully!');
+            })
+            .catch(error => {
+              console.error('Error updating token: ', error);
+            });
+
+          if (
+            userType &&
+            userType.toLowerCase() === selectedValue.toLowerCase()
+          ) {
+            if (userType == 'Student') {
+              postToken(uid);
+            }
+            // Show the success alert
+            alert('You are now logged in');
+            // Delay the navigation to the appropriate home screen
+            setTimeout(() => {
+              if (userType === 'Monitor') {
+                navigation.replace('HomeMonitor');
+              } else if (userType === 'Student') {
+                navigation.replace('HomeStudent');
+              }
+            }, 2000); // Add a 2-second (2000 milliseconds) delay before navigating
+          } else {
+            Alert.alert('Error!', 'Invalid user type');
+          }
+        })
+        .catch(error => {
+          if (error.code === 'auth/user-not-found') {
+            console.log('User not found.');
+            Alert.alert('Alert!', 'User not found');
+          } else if (error.code === 'auth/wrong-password') {
+            console.log('Incorrect password.');
+            Alert.alert('Alert!', 'Incorrect Password');
+          } else if (error.code === 'auth/invalid-email') {
+            console.log('Please fill it');
+            Alert.alert('Alert!', 'Email or Password is empty');
+          } else if (error.code === 'auth/internal-error') {
+            console.log('Please fill it');
+            Alert.alert('Alert!', 'Email or Password is empty');
+          } else {
+            console.log('Error:', error.message);
+          }
+          console.log('Error:', error.message);
+        });
+    } else {
+      alert('app error, please close and start this app');
+    }
+  };
+
   useEffect(() => {
     getData('tokenpn').then(data => {
-      setTokenpn(data)
+      setTokenpn(data);
     });
   }, []);
 
@@ -101,8 +154,10 @@ const SignIn = ({navigation, route}) => {
         SigninColorBack="#7BC9DE"
         SignupColorBack="#FFFF"
       />
+
+      <Gap height={10} />
       <View style={styles.logoContainer}>
-        <Image source={Logo} style={styles.logo} />
+        <Logo width={400} height={80} />
       </View>
       <Gap height={10} />
       <Label
@@ -158,12 +213,7 @@ const SignIn = ({navigation, route}) => {
         secureTextEntry={true}
       />
       <Gap height={20} />
-      <Button
-        title="Login"
-        color="#7BC9DE"
-        textColor="white"
-        onPress={Login}
-      />
+      <Button title="Login" color="#7BC9DE" textColor="white" onPress={Login} />
       <Gap height={8} />
       {/* <Label title="Forgot password?" tALight="center" jContent="center" /> */}
     </View>

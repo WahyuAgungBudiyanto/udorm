@@ -1,6 +1,5 @@
 import {StyleSheet, Text, View, TextInput as TextInputRN} from 'react-native';
 import React from 'react';
-import { keyboardType, secureTextEntry } from 'deprecated-react-native-prop-types/DeprecatedTextInputPropTypes'
 
 const TextInput = ({title, placeholder, onChangeText, value, keyboardType, secureTextEntry}) => {
   return (

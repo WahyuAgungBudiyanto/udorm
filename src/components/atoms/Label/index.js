@@ -10,6 +10,7 @@ const Label = ({
   jContent,
   mL,
   mT,
+  mB
 }) => {
   return (
     <Text
@@ -21,6 +22,7 @@ const Label = ({
         jContent,
         mL,
         mT,
+        mB
       )}>
       {title}
     </Text>
@@ -30,12 +32,13 @@ const Label = ({
 export default Label;
 
 const styles = StyleSheet.create({
-  txt: (textFam, textSize, textColor, tALight, jContent, mL, mT) => ({
+  txt: (textFam, textSize, textColor, tALight, jContent, mL, mT, mB) => ({
     fontFamily: textFam,
     fontSize: textSize,
     color: textColor,
     marginLeft: mL,
     marginTop: mT,
+    marginBottom: mB,
     textAlign: tALight,
     justifyContent: jContent,
   }),

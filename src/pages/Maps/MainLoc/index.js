@@ -1,4 +1,4 @@
-import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Linking  } from 'react-native';
+import {StyleSheet, View, PermissionsAndroid, Text, Pressable, Alert, ActivityIndicator, Image, Dimensions   } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -12,16 +12,20 @@ import AnnexCoordinate from '../AnnexCoordinate';
 import ChapelCoordinate from '../ChapelCoordinate';
 import {ref as r, onValue, off, getDatabase, child, get, update} from 'firebase/database';
 import authentication, {db} from '../../../config/firebase-config';
+const {width, height} = Dimensions.get('window');
+import {getSheetData} from '../../../config/GoogleSheetsAPI';
+import PushNotification from 'react-native-push-notification';
 
-const MainLoc = ({navigation}) => {
+
+const MainLoc = ({navigation, notif}) => {
   const handleButtonPress = () => {
-  if (userType === 'Monitor') {
-    navigation.navigate('HomeMonitor');
-  } else if (userType === 'Student') {
-    navigation.navigate('HomeStudent');
-  }
+    if (userType === 'Monitor') {
+      navigation.navigate('HomeMonitor');
+    } else if (userType === 'Student') {
+      navigation.navigate('HomeStudent');
+    }
     console.log('Button pressed');
-  };  
+  };
 
   const [initialRegion, setInitialRegion] = useState(null);
   const [mapRef, setMapRef] = useState(null);
@@ -36,8 +40,9 @@ const MainLoc = ({navigation}) => {
   const [isLoading, setIsLoading] = useState(false);
   const [monitorCoordinate, setMonitorCoordinate] = useState(null);
   const [sheetDBAPI, setSheetDBAPI] = useState('');
-  const [absenNow, setAbsenNow] = useState(false)
-
+  const [absenNow, setAbsenNow] = useState(false);
+  const [lastNotif, setlastNotif] = useState(false);
+  const [date, setDate] = useState(new Date());
 
   const checkUserType = async uid => {
     const db = getDatabase();
@@ -59,22 +64,21 @@ const MainLoc = ({navigation}) => {
     return null;
   };
 
-
   const fetchTokenpn = () => {
     const studentTypeRef = r(db, `Student`);
     onValue(
       studentTypeRef,
       snapshot => {
-        console.log("snapshot tokenpn:",snapshot.val());
-        let tempArray =[]
+        //console.log("snapshot tokenpn:",snapshot.val());
+        let tempArray = [];
         for (const key in snapshot.val()) {
-            tempArray.push(snapshot.val()[key].tokenpn)
+          tempArray.push(snapshot.val()[key].tokenpn);
           // console.log(`${snapshot.val()[key].tokenpn}`);
         }
         setStudentToken(tempArray);
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
@@ -91,13 +95,16 @@ const MainLoc = ({navigation}) => {
         }
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
 
   const fetchAbsentType = () => {
-    const MonitorTypeRef = r(db, `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`);
+    const MonitorTypeRef = r(
+      db,
+      `Monitor/80cKQ088SPQhmJJKCr2ANsPe5dv2/absentType`,
+    );
     onValue(
       MonitorTypeRef,
       snapshot => {
@@ -108,7 +115,7 @@ const MainLoc = ({navigation}) => {
         }
       },
       error => {
-        console.error(error);
+        //console.error(error);
       },
     );
   };
@@ -127,7 +134,7 @@ const MainLoc = ({navigation}) => {
         }
       });
     } catch (error) {
-      console.error('There was a problem fetching the API endpoint:', error);
+      //console.error('There was a problem fetching the API endpoint:', error);
     }
   };
 
@@ -142,7 +149,6 @@ const MainLoc = ({navigation}) => {
     //console.log(absentType);
   }, [absentType]);
 
-
   const updateUserLocation = (location, inside) => {
     update(r(db, `Student/${uid}/Location`), {
       latitude: location.latitude,
@@ -151,36 +157,34 @@ const MainLoc = ({navigation}) => {
     });
   };
 
-const getCurrentLocation = inside => {
-  if (userType === 'Monitor') {
-    return;
-  }
+  const getCurrentLocation = inside => {
+    if (userType === 'Monitor') {
+      return;
+    }
 
-  Geolocation.getCurrentPosition(
-    position => {
-      const location = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-      updateUserLocation(location, inside);
-    },
-    error => console.log(error),
-    {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
-  );
-};
-
+    Geolocation.getCurrentPosition(
+      position => {
+        const location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        updateUserLocation(location, inside);
+      },
+      error => {
+        // Handle errors here
+      },
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+    );
+  };
 
   useEffect(() => {
     if (uid) {
       (async () => {
         const type = await checkUserType(uid);
         setUserType(type);
-        
-     
-    })();
+      })();
 
       fetchStudentType();
-      
 
       if (userType !== 'Monitor') {
         const locationUpdateInterval = setInterval(() => {
@@ -224,9 +228,6 @@ const getCurrentLocation = inside => {
     }
   }, [uid, inside, userType]);
 
-
-
-
   useEffect(() => {
     async function requestLocationPermission() {
       try {
@@ -246,13 +247,18 @@ const getCurrentLocation = inside => {
                 });
               },
               error => {
-                console.log(error.code, error.message);
+                //console.log(error.code, error.message);
               },
               {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
             );
           }, 2000);
         } else {
           console.log('Location permission denied');
+          if (userType === 'Monitor') {
+            navigation.navigate('HomeMonitor');
+          } else if (userType === 'Student') {
+            navigation.navigate('HomeStudent');
+          }
         }
       } catch (err) {
         console.warn(err);
@@ -264,17 +270,15 @@ const getCurrentLocation = inside => {
   }, []);
 
   useEffect(() => {
-  
     setMonitorCoordinate({
       latitude: 1.4174552420479594, // Your fixed latitude value,
       longitude: 124.98335068219275, // Your fixed longitude value,
     });
- 
-}, [userType]);
+  }, [userType]);
 
-const focusOnMonitor = () => {
-  // Return immediately if the user is not a Monitor
- 
+  const focusOnMonitor = () => {
+    // Return immediately if the user is not a Monitor
+
     if (mapRef && initialRegion) {
       mapRef.animateToRegion(
         {
@@ -285,112 +289,106 @@ const focusOnMonitor = () => {
         },
         2000,
       );
-   
-  }
+    }
 
-  if (mapRef && monitorCoordinate) {
-    mapRef.animateToRegion(
-      {
+    if (mapRef && monitorCoordinate) {
+      mapRef.animateToRegion(
+        {
+          latitude: monitorCoordinate.latitude,
+          longitude: monitorCoordinate.longitude,
+          latitudeDelta: 0.0036,
+          longitudeDelta: 0.0036,
+        },
+        2000,
+      );
+    }
+  };
+
+  useEffect(() => {
+    focusOnMonitor();
+  }, [monitorCoordinate, mapRef, userType]);
+
+  const onMapReady = () => {
+    setMapReady(true);
+    if (userType === 'Monitor') {
+      setInitialRegion({
         latitude: monitorCoordinate.latitude,
         longitude: monitorCoordinate.longitude,
-        latitudeDelta: 0.0036,
-        longitudeDelta: 0.0036,
-      },
-      2000,
-    );
-  }
-};
-
-useEffect(() => {
-  focusOnMonitor();
-}, [monitorCoordinate, mapRef, userType]);
-
-
-
-const onMapReady = () => {
-  setMapReady(true);
-  if (userType === 'Monitor') {
-    setInitialRegion({
-      latitude: monitorCoordinate.latitude,
-      longitude: monitorCoordinate.longitude,
-      latitudeDelta: 0.001,
-      longitudeDelta: 0.001,
-    });
-  } else {
-    mapRef.animateToRegion(initialRegion, 2000);
-  }
-  focusOnMonitor();
-};
-
-
-
-
-
-const incrementPointsForAbsentStudents = async studentsInsideStatus => {
-  setIsLoading(true); // Set loading state to true
-
-  for (const studentUid in studentsInsideStatus) {
-    if (!studentsInsideStatus[studentUid]) {
-      const pointsRef = r(db, `Student/${studentUid}/points`);
-      const pointsSnapshot = await get(pointsRef);
-      const currentPoints = pointsSnapshot.exists()
-        ? Number(pointsSnapshot.val()) // Convert the value to a number
-        : 0;
-      const newPoints = currentPoints + 1;
-      await update(r(db, `Student/${studentUid}`), {points: newPoints});
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
+      });
+    } else {
+      mapRef.animateToRegion(initialRegion, 2000);
     }
-  }
+    focusOnMonitor();
+  };
 
-  setIsLoading(false); // Set loading state to false
-  Alert.alert('Done', 'Points updated for all absent students');
-  resetStudentLocations();
-};
+  const incrementPointsForAbsentStudents = async studentsInsideStatus => {
+    setIsLoading(true); // Set loading state to true
 
-
-const checkAllStudentsInsideStatus = async () => {
-  const studentsRef = r(db, 'Student');
-  const studentsSnapshot = await get(studentsRef);
-
-  if (studentsSnapshot.exists()) {
-    const studentsData = studentsSnapshot.val();
-    const insideStatuses = {};
-
-    for (const studentUid in studentsData) {
-      const inside = studentsData[studentUid]?.Location?.inside;
-      insideStatuses[studentUid] = inside;
+    for (const studentUid in studentsInsideStatus) {
+      if (!studentsInsideStatus[studentUid]) {
+        const pointsRef = r(db, `Student/${studentUid}/points`);
+        const pointsSnapshot = await get(pointsRef);
+        const currentPoints = pointsSnapshot.exists()
+          ? Number(pointsSnapshot.val()) // Convert the value to a number
+          : 0;
+        const newPoints = currentPoints + 1;
+        await update(r(db, `Student/${studentUid}`), {points: newPoints});
+      }
     }
 
-    return {insideStatuses, studentsData};
-  } else {
-    return null;
-  }
-};
+    setIsLoading(false); // Set loading state to false
+    Alert.alert('Done', 'Points updated for all absent students');
+    resetStudentLocations();
+  };
 
-const formatWITDateTime = date => {
-  // Add 7 hours to the date (WIT is UTC+7)
-  date.setHours(date.getHours() + 7);
+  const checkAllStudentsInsideStatus = async () => {
+    const studentsRef = r(db, 'Student');
+    const studentsSnapshot = await get(studentsRef);
 
-  // Extract date components
-  const day = date.getDate();
-  const month = date.getMonth() + 1; // Months are 0-based
-  const year = date.getFullYear();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
+    if (studentsSnapshot.exists()) {
+      const studentsData = studentsSnapshot.val();
+      const insideStatuses = {};
 
-  // Format date and time as 'dd/MM/yyyy HH:mm:ss'
-  return `${day.toString().padStart(2, '0')}/${month
-    .toString()
-    .padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes
-    .toString()
-    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
+      for (const studentUid in studentsData) {
+        const inside = studentsData[studentUid]?.Location?.inside;
+        insideStatuses[studentUid] = inside;
+      }
+
+      return {insideStatuses, studentsData};
+    } else {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDate(new Date());
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  const formattedDate = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  }).format(date);
+
 
 
 const sendNotification = () => {
   const headers = {
-    'Authorization': 'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
-    'Content-Type': 'application/json'
+    Authorization:
+      'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
+    'Content-Type': 'application/json',
   };
 
   const data = {
@@ -400,61 +398,97 @@ const sendNotification = () => {
     // ],
     registration_ids: studentToken,
     priority: 'high',
+    content_available: true,
     notification: {
-      title: 'siap siap absen',
-      body: 'siap buka hp',
-      sound: 'default'
-    }
+      title: 'ABSENT AKAN DIMULAI',
+      body: 'PASTIKAN ANDA BERAPA DI GOOGLE MAPS APLIKASI',
+      sound: 'default',
+    },
   };
 
   fetch('https://fcm.googleapis.com/fcm/send', {
     method: 'POST',
     headers: headers,
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   })
     .then(response => console.log(response))
     .catch(error => console.error(error));
 };
 
+  const sendLastNotif = () => {
+    const headers = {
+      Authorization:
+        'key=AAAAP9tbbbE:APA91bGH-JCjEKDfM_O4ZyyckelgEccAk-bl2kF7ME4fEBPw_F8ycSriXPfpH-bMEEprDn7kTwyiSfnoFyw5UQDy34ELWZqwn0yvW0Wo-qQ-VWdpZ09NusXdXfRE_aV5HbVX-YZxaXXl',
+      'Content-Type': 'application/json',
+    };
+
+    const data = {
+      // registration_ids: [
+      //  'dlnGXIy9Tsy_9Vg_Znr9TV:APA91bEc6asLb2ltgKG5tGBcnM1d1Bv5uUtOWQ6AHqfnupGsNr12FRMLeUcd1x9k6OjmZCKZT94wVEWm565TWAlYXvTYLOXMiLy-mkWY3oUY_ZzPtwTjmyuKDjdvTBoTwxtv5Jn9oRQx',
+      //   'dTQM7OzRSLSX4kChWPHaOr:APA91bG1sOcVfCnXbrzpJo2pNWxtUMY0nyaUiKrN0EBtrk3HNmVJjzsy93Fatju7FnVdSxx3dQ6fuzaXVfHgir_JIlT0E2QuKmxKLTDxMcsP1eIJRboZ12mW2J3ErsMLj0J_4B81TVag'
+      // ],
+      registration_ids: studentToken,
+      priority: 'high',
+      content_available: true,
+      notification: {
+        title: 'ABSEN TELAH SELESAI',
+        body: 'TERIMA KASIH',
+        sound: 'default',
+      },
+    };
+
+    fetch('https://fcm.googleapis.com/fcm/send', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data),
+    })
+      .then(response => console.log(response))
+      .catch(error => console.error(''));
+  };
 
 const handleAbsentNowPress = async () => {
   const result = await checkAllStudentsInsideStatus();
 
   if (!result) {
-    console.error('Error fetching student data.');
+    //console.error('Error fetching student data.')
     return;
   }
 
   const {insideStatuses: allStudentsInsideStatus, studentsData} = result;
   console.log('Inside statuses for all students:', allStudentsInsideStatus);
 
-  // Filter students with inside = false
-  const absentStudents = Object.keys(allStudentsInsideStatus)
-    .filter(studentUid => !allStudentsInsideStatus[studentUid])
-    .map(studentUid => ({
-      uid: studentUid,
-      Name: studentsData[studentUid].Name,
-      Parent: studentsData[studentUid].Parent,
-      Location: studentsData[studentUid].Location,
-    }));
-
-  const absentPhoneNumbersAndNames = absentStudents.map(student => {
+  // Updated the absentData mapping to include locationStatus
+  const absentData = Object.keys(allStudentsInsideStatus).map(studentUid => {
+    const isAbsent = !allStudentsInsideStatus[studentUid];
+    const locationStatus = isAbsent ? 'tidak hadir' : 'hadir';
     return {
-      name: student.Name,
-      phoneNumber: student.Parent,
-      latitude: student.Location.latitude,
-      longitude: student.Location.longitude,
+      NO: 'INCREMENT',
+      DATE: formattedDate,
+      NOREGIS: studentsData[studentUid].Email.split('@')[0],
+      NAME: studentsData[studentUid].Name,
+      ABSENT: locationStatus,
+      PLACE: absentType,
     };
   });
 
-  console.log(absentPhoneNumbersAndNames);
+  console.log(absentData);
 
-  const url = 'http://217.195.197.235:5000/send-message';
+  // Updated to filter only absent students and map to phone numbers and names
+  const absentPhoneNumbersAndNames = Object.keys(allStudentsInsideStatus)
+    .filter(studentUid => !allStudentsInsideStatus[studentUid])
+    .map(studentUid => ({
+      name: studentsData[studentUid].Name,
+      phoneNumber: studentsData[studentUid].Parent,
+    }));
+
+  //console.log(absentPhoneNumbersAndNames);
+
+  const url = 'http://217.195.197.57:5000/send-message';
 
   absentPhoneNumbersAndNames.forEach(async studentInfo => {
     const body = {
       wa_numbers: [studentInfo.phoneNumber],
-      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di ${absentType}. Point telah ditambahkan. `,
+      message: `Hai, orang tua dari ${studentInfo.name}. Anak anda tidak mengikuti absen yang berada di ${absentType}. Point telah ditambahkan. \n\nHello ${studentInfo.name} parents, Your child did not attend the absence that was in ${absentType}. Points has been added.`,
     };
 
     // Send a POST request with the absent student's phone number
@@ -478,18 +512,6 @@ const handleAbsentNowPress = async () => {
     }
   });
 
-  // Create an array of objects containing the absent student's name, and current datetime
-  const absentData = absentStudents.map(student => {
-    return {
-      DATETIME: formatWITDateTime(new Date()),
-      NAME: student.Name,
-      ABSENTTYPE: absentType,
-    };
-  });
-
-  console.log(absentData);
-
-
   // Send data to SheetDB using a POST request for each absent student
   for (const data of absentData) {
     try {
@@ -502,49 +524,90 @@ const handleAbsentNowPress = async () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        let errorMsg = `HTTP error! status: ${response.status}`;
+        if (errorText) {
+          errorMsg += ` - ${errorText}`;
+        }
+        throw new Error(errorMsg);
       }
 
       const jsonResponse = await response.json();
       console.log(jsonResponse);
     } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
+      let alertMsg = '';
+      switch (error.message) {
+        case 'HTTP error! status: 400':
+          alertMsg = 'Bad Request';
+          break;
+        case 'HTTP error! status: 401':
+          alertMsg = 'Unauthorized';
+          break;
+        case 'HTTP error! status: 402':
+          alertMsg = 'Payment Required';
+          break;
+        case 'HTTP error! status: 403':
+          alertMsg = 'Forbidden';
+          break;
+        case 'HTTP error! status: 404':
+          alertMsg = 'Not Found';
+          break;
+        case 'HTTP error! status: 405':
+          alertMsg = 'Method Not Allowed';
+          break;
+        case 'HTTP error! status: 429':
+          alertMsg = 'Too Many Requests';
+          break;
+        case 'HTTP error! status: 500':
+          alertMsg = 'Internal Server Error';
+          break;
+        case 'HTTP error! status: 1015':
+          alertMsg = 'Rate limit exceeded';
+          break;
+        default:
+          alertMsg = 'There was a problem with the fetch operation';
+          break;
+      }
+      Alert.alert('Alert', alertMsg);
+      //console.error(error);
     }
   }
 
-  
-
   await incrementPointsForAbsentStudents(allStudentsInsideStatus);
+  setAbsenNow(false);
+  setlastNotif(true);
 };
 
-const handleNotifyStudent  = async () =>{
-  sendNotification()
-  setAbsenNow(true)
-}
+  const handleNotifyStudent = async () => {
+    sendNotification();
+    setAbsenNow(true);
+  };
 
+  const handleLastNotif = async () => {
+    sendLastNotif();
 
+    navigation.navigate('HomeMonitor');
+  };
 
-const resetStudentLocations = async () => {
-  const db = getDatabase();
-  const userType = await checkUserType(uid);
+  const resetStudentLocations = async () => {
+    const db = getDatabase();
+    const userType = await checkUserType(uid);
 
-  if (userType === 'Monitor') {
-    const studentRef = r(db, 'Student'); // Define the studentRef variable here
-    const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
-    snapshot.forEach(childSnapshot => {
-      const studentUID = childSnapshot.key;
-      update(r(db, `Student/${studentUID}/Location`), {
-        latitude: 0,
-        longitude: 0,
-        inside: false,
+    if (userType === 'Monitor') {
+      const studentRef = r(db, 'Student'); // Define the studentRef variable here
+      const snapshot = await get(studentRef); // Use the 'get' method to fetch data once
+      snapshot.forEach(childSnapshot => {
+        const studentUID = childSnapshot.key;
+        update(r(db, `Student/${studentUID}/Location`), {
+          latitude: 0,
+          longitude: 0,
+          inside: false,
+        });
       });
-    });
-  } else {
-    console.log('User is not a Monitor');
-  }
-};
-
-
+    } else {
+      console.log('User is not a Monitor');
+    }
+  };
 
   return (
     <View style={{flex: 1}}>
@@ -602,16 +665,20 @@ const resetStudentLocations = async () => {
                   onInsideChange={setInside}
                 />
               )}
-            {((absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' &&
-              [
-                'Crystal',
-                'Edel',
-                'Genset',
-                'Guest',
-                'Jasmine',
-                'Annex',
-              ].includes(studentType)) ||
-              (absentType === 'Chapel-RabuMalam' || absentType === 'Chapel-Vesper' || absentType === 'Chapel-Sabat' && userType === 'Monitor')) && (
+            {(absentType === 'Chapel-RabuMalam' ||
+              absentType === 'Chapel-Vesper' ||
+              (absentType === 'Chapel-Sabat' &&
+                [
+                  'Crystal',
+                  'Edel',
+                  'Genset',
+                  'Guest',
+                  'Jasmine',
+                  'Annex',
+                ].includes(studentType)) ||
+              absentType === 'Chapel-RabuMalam' ||
+              absentType === 'Chapel-Vesper' ||
+              (absentType === 'Chapel-Sabat' && userType === 'Monitor')) && (
               <ChapelCoordinate
                 userLocation={initialRegion}
                 onInsideChange={setInside}
@@ -629,7 +696,7 @@ const resetStudentLocations = async () => {
                   title={`Student ${location.uid}`}>
                   <Image
                     style={{width: 15, height: 15}}
-                    source={require('../../../assets/images/face.png')}
+                    source={require('../../../assets/images/studentFace.png')}
                   />
                 </Marker>
               ))}
@@ -643,7 +710,7 @@ const resetStudentLocations = async () => {
           {opacity: pressed ? 0.5 : 1},
         ]}
         onPress={handleButtonPress}>
-        <Text style={styles.buttonText}>Back</Text>
+        <Text style={styles.buttonText}>Back </Text>
       </Pressable>
       {(userType === 'Monitor' || userType === 'Student') && (
         <Pressable
@@ -656,7 +723,7 @@ const resetStudentLocations = async () => {
           <View>
             <Image source={ZoomOut} style={{width: 20, height: 20}} />
           </View>
-        </Pressable>  
+        </Pressable>
       )}
       {userType === 'Monitor' && (
         <Pressable
@@ -665,14 +732,25 @@ const resetStudentLocations = async () => {
             pressed ? styles.buttonPressed : styles.buttonNotPressed,
             {opacity: pressed ? 0.5 : 1},
           ]}
-          onPress={absenNow?handleAbsentNowPress: handleNotifyStudent}>
+          onPress={absenNow ? handleAbsentNowPress : handleNotifyStudent}>
           <Text style={styles.buttonText}>
-            {
-              absenNow? 'ABSENT NOW' :'NOTIFY STUDENT'
-            }
-            </Text>
+            {absenNow ? 'ABSENT NOW' : 'NOTIFY STUDENT'}
+          </Text>
         </Pressable>
       )}
+
+      {userType === 'Monitor' && lastNotif && (
+        <Pressable
+          style={({pressed}) => [
+            styles.floatingButton,
+            pressed ? styles.buttonPressed : styles.buttonNotPressed,
+            {opacity: pressed ? 0.5 : 1},
+          ]}
+          onPress={handleLastNotif}>
+          <Text style={styles.buttonText}>NOTIFY STUDENT DONE</Text>
+        </Pressable>
+      )}
+
       {isLoading && (
         <View
           style={{
@@ -728,8 +806,8 @@ const styles = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     bottom: 20,
-    marginHorizontal: 170,
-    paddingHorizontal: 15,
+    alignSelf:'center',
+    paddingHorizontal: width * 0.1,
     paddingVertical: 5,
     borderRadius: 5,
   },
